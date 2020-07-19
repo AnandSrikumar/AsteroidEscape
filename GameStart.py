@@ -27,7 +27,8 @@ mv_speed = 12
 mouse_pressed = False
 game_start = False
 angle, slope, dx = 0, 0, 0
-bullets = np.array([-1, -1, -1, -1, -1])
+
+bullets2 = []
 can_fire = True
 bullet_event, bullet_event_time = pygame.USEREVENT+2, 100
 end_sound, end_sound_time = pygame.USEREVENT + 2, 100
@@ -70,10 +71,9 @@ def generate_random_x():
 
 
 def load_bullets():
-    global can_fire, bullets, can_play_sound
+    global can_fire, bullets, can_play_sound, bullets2
     if can_fire and mouse_pressed:
-        arr2 = np.array([player_x, player_y, slope, angle, dx])
-        bullets = np.vstack((bullets, arr2))
+        bullets2.append([player_x, player_y, slope, angle, dx])
         pygame.time.set_timer(bullet_event, bullet_event_time)
         can_fire = False
         if can_play_sound:
@@ -146,37 +146,33 @@ def draw_player():
 
 
 def draw_bullets():
-    global bullets
+    global bullets2
     rem = []
-    dim = bullets.shape
-    if len(dim) == 1:
-        return
+
     x_speed = bullet_speed
-    for x in range(bullets.shape[0]):
-        if x == 0:
-            continue
-        bull = SegmentClass.PlayerSegment(bullets[x][0], bullets[x][1], GameArt.bullet, angle1=bullets[x][3]
+    for bullet in bullets2:
+        bull = SegmentClass.PlayerSegment(bullet[0], bullet[1], GameArt.bullet, angle1=bullet[3]
                                           , rotate=True, wid=30, hie=40)
         display_surface.blit(bull.image, bull.rect)
-        collision_detection_bullet(bull.rect , x)
-        y_speed = bullets[x][2] * x_speed
-        if bullets[x][2] > 1:
+        collision_detection_bullet(bull.rect , bullet)
+        y_speed = bullet[2] * x_speed
+        if bullet[2] > 1:
             y_speed = bullet_speed
-            x_speed = y_speed / bullets[x][2]
-        elif bullets[x][2] < -1:
+            x_speed = y_speed / bullet[2]
+        elif bullet[2] < -1:
             y_speed = -bullet_speed
-            x_speed = y_speed / bullets[x][2]
-        if bullets[x][4] > 0:
-            bullets[x][0] += x_speed
-            bullets[x][1] += y_speed
+            x_speed = y_speed / bullet[2]
+        if bullet[4] > 0:
+            bullet[0] += x_speed
+            bullet[1] += y_speed
         else:
-            bullets[x][0] -= x_speed
-            bullets[x][1] -= y_speed
-        if bullets[x][0] > w or bullets[x][0] < -40 or bullets[x][1] < -40 or bullets[x][1] > h:
-            rem.append(x)
+            bullet[0] -= x_speed
+            bullet[1] -= y_speed
+        if bullet[0] > w or bullet[0] < -40 or bullet[1] < -40 or bullet[1] > h:
+            rem.append(bullet)
     for r in rem:
         try:
-            bullets = np.delete(bullets, r, 0)
+            bullets2.remove(r)
         except:
             pass
 
@@ -334,7 +330,7 @@ def collision_detection(ast_rect, index=0):
 
 
 def collision_detection_bullet(bullet_rect, index=0):
-    global ast_list, explosions, score, bullets, one_up_counter, player_lives
+    global ast_list, explosions, score, one_up_counter, player_lives
     for ast in ast_list:
         ast_rect = pygame.Rect(ast[0], ast[1], ast_w, ast_h)
         if bullet_rect.colliderect(ast_rect):
@@ -347,7 +343,7 @@ def collision_detection_bullet(bullet_rect, index=0):
                 if one_up_counter == 15:
                     player_lives += 1
                     one_up_counter = 0
-                bullets[index][0] = -2000
+                index[0] = -2000
 
 
 def draw_explosion(whose):
