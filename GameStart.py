@@ -18,7 +18,7 @@ w, h = pygame.display.get_surface().get_size()
 player_x, player_y = w / 2, h - 60
 player_w, player_h = 0, 0
 ast_list = []
-ast_event, ast_time = pygame.USEREVENT+1, 400
+ast_event, ast_time = pygame.USEREVENT+1, 200
 ast_add = True
 ast_w, ast_h = 70, 80
 sprite_no = 0
@@ -336,11 +336,11 @@ def collision_detection_bullet(bullet_rect, index=0):
         if bullet_rect.colliderect(ast_rect):
             center_diff = abs((ast_rect[0]+ast_rect[2]/2)-(bullet_rect[0]+bullet_rect[2]/2))
             if center_diff <= 20:
-                explosions.append([ast_rect[0], ast_rect[1], 160, 160, 0, 0])
+                explosions.append([ast_rect[0], ast_rect[1], 160, 160, 0, 0, True])
                 ast[1] = 2000
                 score += 1
                 one_up_counter += 1
-                if one_up_counter == 15:
+                if one_up_counter == 50:
                     player_lives += 1
                     one_up_counter = 0
                 index[0] = -2000
@@ -369,7 +369,9 @@ def draw_explosion(whose):
                 e[5] += 1
             if e[5] >= 15:
                 exp_rem.append(e)
-            play_sound(GameArt.explosion_sound)
+            if e[6]:
+                play_sound(GameArt.explosion_sound)
+                e[6] = False
         for e in exp_rem:
             explosions.remove(e)
 
@@ -440,6 +442,12 @@ def check_selector(x):
         pygame.quit()
         quit()
         sys.exit()
+
+
+def profiler():
+    write_text(len(ast_list), 1280, 700)
+    write_text(len(bullets2), 1320, 700)
+    write_text(psutil.cpu_percent(), 1240, 700)
 
 
 def gui_loader():
