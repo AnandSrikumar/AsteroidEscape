@@ -57,6 +57,19 @@ background_loader = SegmentClass.PlayerSegment(0, 0, GameArt.background, wid=w, 
 background_loader2 = SegmentClass.PlayerSegment(0, -h, GameArt.background, wid=w, hie=w, tl=True)
 player_loader = SegmentClass.PlayerSegment(player_x, player_y, GameArt.spaceship[sprite_no], tl=False,
                                       angle1=angle, rotate=True, wid=70, hie=70)
+player_sprites = GameArt.spaceship
+player_objects = []
+
+
+def loading_player():
+    global player_objects
+    for sprite in player_sprites:
+        obj = SegmentClass.PlayerSegment(player_x, player_y, sprite, tl=False,
+                                      angle1=angle, rotate=True, wid=70, hie=70)
+        player_objects.append(obj)
+
+
+loading_player()
 
 
 def generate_random_x():
@@ -84,12 +97,15 @@ def generate_random_x():
 def load_bullets():
     global can_fire, bullets, can_play_sound, bullets2
     if can_fire and mouse_pressed:
-        bullets2.append([player_x, player_y, slope, angle, dx])
+        bull = SegmentClass.PlayerSegment(player_x, player_y, GameArt.bullet, angle1=angle
+                                          , rotate=True, wid=30, hie=40)
+        bullets2.append([bull, slope, dx])
         pygame.time.set_timer(bullet_event, bullet_event_time)
         can_fire = False
         if can_play_sound:
             play_sound(GameArt.bullet_sound)
             can_play_sound = False
+            #slope, dx
 
 
 def event_handling():
@@ -129,11 +145,10 @@ def event_handling():
 
 def draw_background():
     global bgr_y, bgr_y2, background_loader, background_loader2
-    display_surface.blit(background_loader.image, background_loader.rect)
-    display_surface.blit(background_loader2.image, background_loader2.rect)
-    background_loader.rect.topleft = [0, background_loader.y]
-    background_loader2.rect.topleft = [0, background_loader2.y]
-    write_text(str(background_loader.tl)+".."+str(background_loader2.tl))
+    background_loader.get_image()
+    background_loader2.get_image()
+    display_surface.blit(background_loader.image_copy, background_loader.rect)
+    display_surface.blit(background_loader2.image_copy, background_loader2.rect)
     background_loader.y += 25
     background_loader2.y += 25
     if background_loader.y >= h:
@@ -143,19 +158,19 @@ def draw_background():
 
 
 def draw_player():
-    global sprite_no, player_w, player_h, player_loader
+    global sprite_no, player_w, player_h, player_loader, player_objects
     if dead:
         return
-
-    player_loader.get_image()
-    display_surface.blit(player_loader.image_copy, player_loader.rect)
-    player_w, player_h = player_loader.rect[2], player_loader.rect[3]
-    player_loader.x, player_loader.y = player_x, player_y
-    player_loader.angle1 = angle
-    if sprite_no < len(GameArt.spaceship)-1:
+    display_surface.blit(player_objects[sprite_no].image_copy, player_objects[sprite_no].rect)
+    if sprite_no < len(GameArt.spaceship) - 1:
         sprite_no += 1
     else:
         sprite_no = 0
+    for spr in player_objects:
+        spr.get_image()
+        player_w, player_h = spr.rect[2], spr.rect[3]
+        spr.x, spr.y = player_x, player_y
+        spr.angle1 = angle
 
 
 def draw_bullets():
@@ -163,27 +178,25 @@ def draw_bullets():
     rem = []
 
     x_speed = bullet_speed
-    for bullet in bullets2:
-        bull = SegmentClass.PlayerSegment(bullet[0], bullet[1], GameArt.bullet, angle1=bullet[3]
-                                          , rotate=True, wid=30, hie=40)
-        bull.get_image()
-        display_surface.blit(bull.image, bull.rect)
-        collision_detection_bullet(bull.rect , bullet)
-        y_speed = bullet[2] * x_speed
-        if bullet[2] > 1:
+    for bull in bullets2:
+        bull[0].get_image()
+        display_surface.blit(bull[0].image, bull[0].rect)
+        collision_detection_bullet(bull[0].rect, bull)
+        y_speed = bull[1] * x_speed
+        if bull[1] > 1:
             y_speed = bullet_speed
-            x_speed = y_speed / bullet[2]
-        elif bullet[2] < -1:
+            x_speed = y_speed / bull[1]
+        elif bull[1] < -1:
             y_speed = -bullet_speed
-            x_speed = y_speed / bullet[2]
-        if bullet[4] > 0:
-            bullet[0] += x_speed
-            bullet[1] += y_speed
+            x_speed = y_speed / bull[1]
+        if bull[2] > 0:
+            bull[0].x += x_speed
+            bull[0].y += y_speed
         else:
-            bullet[0] -= x_speed
-            bullet[1] -= y_speed
-        if bullet[0] > w or bullet[0] < -40 or bullet[1] < -40 or bullet[1] > h:
-            rem.append(bullet)
+            bull[0].x -= x_speed
+            bull[0].y -= y_speed
+        if bull[0].x > w or bull[0].x < -40 or bull[0].y < -40 or bull[0].y > h:
+            rem.append(bull)
     for r in rem:
         try:
             bullets2.remove(r)
@@ -294,19 +307,6 @@ def calc_angle():
 def draw_asteroids():
     global destroy_meter, ast_list2
     remover = []
-    """for item in ast_list:
-        if item[1]+80 > 0:
-            img = SegmentClass.PlayerSegment(item[0], item[1], GameArt.asteroids[item[2]], tl=True, wid=ast_w,
-                                             hie=ast_h, rotate=True, angle1=item[4])
-            display_surface.blit(img.image, img.rect)
-            collision_detection(img.rect, item)
-        item[1] += ast_speed
-        item[0] += item[3]
-        item[4] += 4
-        if item[1] > h+100:
-            remover.append(item)
-    for rem in remover:
-        ast_list.remove(rem)"""
     indx = 0
     for item in ast_list2:
         if item[0].y + 80 > 0:
@@ -372,7 +372,7 @@ def collision_detection_bullet(bullet_rect, index=0):
                 if one_up_counter == 50:
                     player_lives += 1
                     one_up_counter = 0
-                index[0] = -2000
+                index[0].x = -2000
 
 
 def draw_explosion(whose):
