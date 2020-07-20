@@ -17,7 +17,6 @@ w, h = pygame.display.get_surface().get_size()
 
 player_x, player_y = w / 2, h - 60
 player_w, player_h = 0, 0
-ast_list = []
 ast_event, ast_time = pygame.USEREVENT+1, 200
 ast_add = True
 ast_w, ast_h = 70, 80
@@ -52,6 +51,12 @@ explosions = []
 fuel_event, fuel_event_time = pygame.USEREVENT+3, 20000
 fuel_send = True
 one_up_counter = 0
+ast_list2 = []
+
+background_loader = SegmentClass.PlayerSegment(0, 0, GameArt.background, wid=w, hie=w, tl=True)
+background_loader2 = SegmentClass.PlayerSegment(0, -h, GameArt.background, wid=w, hie=w, tl=True)
+player_loader = SegmentClass.PlayerSegment(player_x, player_y, GameArt.spaceship[sprite_no], tl=False,
+                                      angle1=angle, rotate=True, wid=70, hie=70)
 
 
 def generate_random_x():
@@ -60,12 +65,18 @@ def generate_random_x():
         x = random.randrange(0, w-100)
         sp = random.randrange(0, 4)
         mv = random.randrange(-5, 5)
-        ast_list.append([x, -400, sp, mv, 0, 0])
+
+        ast_seg = SegmentClass.PlayerSegment(x, -400, GameArt.asteroids[sp], wid=ast_w, hie=ast_h, tl=True,
+                                             rotate=True, angle1=0)
+        ast_list2.append([ast_seg, mv, 0])
         ast_add = False
         pygame.time.set_timer(ast_event, ast_time)
         if fuel_send:
             x = random.randrange(0, w-100)
-            ast_list.append([x, -400, 4, mv, 0, 1])
+
+            fuel_seg = SegmentClass.PlayerSegment(x, -400, GameArt.asteroids[4], wid=ast_w, hie=ast_h, tl=True,
+                                         rotate=True, angle1=0)
+            ast_list2.append([fuel_seg, mv, 1])
             fuel_send = False
             pygame.time.set_timer(fuel_event, fuel_event_time)
 
@@ -117,28 +128,30 @@ def event_handling():
 
 
 def draw_background():
-    global bgr_y, bgr_y2
-    backgr = SegmentClass.PlayerSegment(0, bgr_y, GameArt.background, wid=w, hie=h, tl=True)
-    backgr2 = SegmentClass.PlayerSegment(0, bgr_y2, GameArt.background, wid=w, hie=h, tl=True)
-    display_surface.blit(backgr.image, backgr.rect)
-    display_surface.blit(backgr2.image, backgr2.rect)
-
-    bgr_y += 25
-    bgr_y2 += 25
-    if bgr_y >= h:
-        bgr_y = -h
-    if bgr_y2 > h:
-        bgr_y2 = -h
+    global bgr_y, bgr_y2, background_loader, background_loader2
+    display_surface.blit(background_loader.image, background_loader.rect)
+    display_surface.blit(background_loader2.image, background_loader2.rect)
+    background_loader.rect.topleft = [0, background_loader.y]
+    background_loader2.rect.topleft = [0, background_loader2.y]
+    write_text(str(background_loader.tl)+".."+str(background_loader2.tl))
+    background_loader.y += 25
+    background_loader2.y += 25
+    if background_loader.y >= h:
+        background_loader.y = -h
+    if background_loader2.y > h:
+        background_loader2.y = -h
 
 
 def draw_player():
-    global sprite_no, player_w, player_h
+    global sprite_no, player_w, player_h, player_loader
     if dead:
         return
-    plyr = SegmentClass.PlayerSegment(player_x, player_y, GameArt.spaceship[sprite_no], tl=False,
-                                      angle1=angle, rotate=True, wid=70, hie=70)
-    display_surface.blit(plyr.image, plyr.rect)
-    player_w, player_h = plyr.rect[2], plyr.rect[3]
+
+    player_loader.get_image()
+    display_surface.blit(player_loader.image_copy, player_loader.rect)
+    player_w, player_h = player_loader.rect[2], player_loader.rect[3]
+    player_loader.x, player_loader.y = player_x, player_y
+    player_loader.angle1 = angle
     if sprite_no < len(GameArt.spaceship)-1:
         sprite_no += 1
     else:
@@ -153,6 +166,7 @@ def draw_bullets():
     for bullet in bullets2:
         bull = SegmentClass.PlayerSegment(bullet[0], bullet[1], GameArt.bullet, angle1=bullet[3]
                                           , rotate=True, wid=30, hie=40)
+        bull.get_image()
         display_surface.blit(bull.image, bull.rect)
         collision_detection_bullet(bull.rect , bullet)
         y_speed = bullet[2] * x_speed
@@ -205,6 +219,7 @@ def key_release_handle(key):
 
 def draw_player_health():
     health = SegmentClass.PlayerSegment(20, h-40, GameArt.spaceship[0], wid=40, hie=40)
+    health.get_image()
     display_surface.blit(health.image, health.rect)
     write_text("X"+str(player_lives), x=45, y=h-40)
 
@@ -277,9 +292,9 @@ def calc_angle():
 
 
 def draw_asteroids():
-    global ast_list, destroy_meter
+    global destroy_meter, ast_list2
     remover = []
-    for item in ast_list:
+    """for item in ast_list:
         if item[1]+80 > 0:
             img = SegmentClass.PlayerSegment(item[0], item[1], GameArt.asteroids[item[2]], tl=True, wid=ast_w,
                                              hie=ast_h, rotate=True, angle1=item[4])
@@ -291,7 +306,21 @@ def draw_asteroids():
         if item[1] > h+100:
             remover.append(item)
     for rem in remover:
-        ast_list.remove(rem)
+        ast_list.remove(rem)"""
+    indx = 0
+    for item in ast_list2:
+        if item[0].y + 80 > 0:
+            item[0].get_image()
+            display_surface.blit(item[0].image_copy, item[0].rect)
+            collision_detection(item[0].rect, item[2], indx)
+        item[0].y += ast_speed
+        item[0].x += item[1]
+        item[0].angle1 += 4
+        if item[0].y > h+100:
+            remover.append(item)
+        indx += 1
+    for rem in remover:
+        ast_list2.remove(rem)
 
 
 def write_text(text, x=w/2, y=h-150, font_name='freesansbold.ttf', size=14, color=(255, 255, 255)):
@@ -311,28 +340,28 @@ def cpu_limit():
     return psutil.cpu_percent() < 70
 
 
-def collision_detection(ast_rect, index=0):
-    global expl_no, dead, player_lives, player_x, counter, expl_x, ast_list, destroy_meter
+def collision_detection(ast_rect, index=0, rem=0):
+    global expl_no, dead, player_lives, player_x, counter, expl_x, destroy_meter, ast_list2
     player_rect = pygame.Rect(player_x-player_w/2, player_y-player_h/2, player_w, player_h)
     if ast_rect.colliderect(player_rect):
         if (ast_rect[0]+ast_rect[2] >= player_rect[0] + player_rect[2]/2)\
                 and (ast_rect[0] <= player_rect[0] + player_rect[2]*0.75):
-            if index[5] == 1:
+            if index == 1:
                 if destroy_meter + 15 > 100:
                     destroy_meter = 100
                 else:
                     destroy_meter += 15
-                index[1] = 5000
+                ast_list2[rem][0].y = 5000
                 return
             dead = True
             player_lives -= 1
-            ast_list.remove(index)
+            ast_list2[rem][0].y = 5000
 
 
 def collision_detection_bullet(bullet_rect, index=0):
-    global ast_list, explosions, score, one_up_counter, player_lives
-    for ast in ast_list:
-        ast_rect = pygame.Rect(ast[0], ast[1], ast_w, ast_h)
+    global explosions, score, one_up_counter, player_lives, ast_list2
+    for ast in ast_list2:
+        ast_rect = pygame.Rect(ast[0].x, ast[0].y, ast_w, ast_h)
         if bullet_rect.colliderect(ast_rect):
             center_diff = abs((ast_rect[0]+ast_rect[2]/2)-(bullet_rect[0]+bullet_rect[2]/2))
             if center_diff <= 20:
@@ -350,6 +379,7 @@ def draw_explosion(whose):
     global expl_no, dead, player_lives, player_x, counter, explosions
     if whose == "player" and dead:
         exp = SegmentClass.PlayerSegment(player_x, player_y, GameArt.explosions[expl_no], wid=160, hie=160)
+        exp.get_image()
         display_surface.blit(exp.image, exp.rect)
         if expl_no < len(GameArt.explosions) - 1:
             expl_no += 1
@@ -362,6 +392,7 @@ def draw_explosion(whose):
     if whose == "ast":
         for e in explosions:
             ex = SegmentClass.PlayerSegment(e[0], e[1], GameArt.explosions[e[4]], wid=e[2], hie=e[3])
+            ex.get_image()
             display_surface.blit(ex.image, ex.rect)
             if e[4] < len(GameArt.explosions)-1:
                 e[4] += 1
@@ -387,14 +418,14 @@ def check_game_over():
 
 
 def reset():
-    global dead, counter, player_x, expl_no, destroy_meter, ast_list
+    global dead, counter, player_x, expl_no, destroy_meter, ast_list2
     if player_lives > 0:
         counter = 0
         player_x = w/2
         expl_no = 0
         dead = False
         destroy_meter = 100
-        ast_list = []
+        ast_list2 = []
 
 
 def game_init():
@@ -445,7 +476,7 @@ def check_selector(x):
 
 
 def profiler():
-    write_text(len(ast_list), 1280, 700)
+    write_text(len(ast_list2), 1280, 700)
     write_text(len(bullets2), 1320, 700)
     write_text(psutil.cpu_percent(), 1240, 700)
 
@@ -474,6 +505,7 @@ def gui_loader():
             sound_play[x] = True
 
         item = SegmentClass.PlayerSegment(x_, y_, GameArt.menu_items[x], wid=w_, hie=h_)
+        item.get_image()
         display_surface.blit(item.image, item.rect)
         y_ += 70
 
