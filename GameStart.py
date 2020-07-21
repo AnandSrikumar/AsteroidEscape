@@ -32,7 +32,7 @@ can_fire = True
 bullet_event, bullet_event_time = pygame.USEREVENT+2, 100
 end_sound, end_sound_time = pygame.USEREVENT + 2, 100
 bullet_speed = 30
-ast_speed = 30
+ast_speed = 40
 player_lives = 4
 destroy_meter = 100
 score = 0
@@ -59,6 +59,8 @@ player_loader = SegmentClass.PlayerSegment(player_x, player_y, GameArt.spaceship
                                       angle1=angle, rotate=True, wid=70, hie=70)
 player_sprites = GameArt.spaceship
 player_objects = []
+other_gui = False
+gui_no = 0
 
 
 def loading_player():
@@ -205,7 +207,7 @@ def draw_bullets():
 
 
 def key_press_handle(key):
-    global right, left, shift
+    global right, left, shift, other_gui
     if key[pygame.K_d] or key[pygame.K_RIGHT]:
         right = True
         left = False
@@ -216,6 +218,9 @@ def key_press_handle(key):
 
     if key[pygame.K_RSHIFT] or key[pygame.K_LSHIFT]:
         shift = True
+
+    if key[pygame.K_BACKSPACE] and other_gui:
+        other_gui = False
 
 
 def key_release_handle(key):
@@ -462,13 +467,13 @@ def run_game():
 
 
 def check_selector(x):
-    global game_start
+    global game_start, gui_no
     if x == 0:
         game_start = True
     elif x == 1:
-        pass
+        gui_no = 1
     elif x == 2:
-        pass
+        gui_no = 2
     elif x == 3:
         pygame.quit()
         quit()
@@ -482,10 +487,32 @@ def profiler():
 
 
 def gui_loader():
-    global sound_play
+    global sound_play, other_gui
     game_init()
     x_ = w/2
     y_ = h/2
+    if other_gui:
+        if gui_no == 2:
+            write_text("**********A simple game made using python*********", x=330, y=340, size=20)
+            write_text("Art downloaded from", x=330, y=370, size=20)
+            write_text("1)opengameart.net    2)craftpix.net", x=360, y=400, size=16)
+            write_text("Music credit goes to \"neffex\" and \"two steps from hill\"", x=330, y=430, size=20)
+            write_text("For songs used in game, visit \"GameArt/Music/Songs\" in the game's folder", x=330,y=460, size=20)
+            write_text("Made by Anand", x=330, y=490, size=20)
+            write_text("Press backspace to go back", x=330, y=520, size=20)
+
+        if gui_no == 1:
+            write_text("*********Controls*********", x=330, y=340, size=20)
+            write_text("Controls", x=330, y=370, size=20)
+            write_text("\"d\" for moving right, \"a\" for moving left", x=360, y=400, size=16)
+            write_text("We can't move up and down, we can only move left and right", x=330, y=430, size=20)
+            write_text("We have to shoot and escape from asteroids", x=330, y=460,
+                       size=20)
+            write_text("Press ESC to exit the game", x=330, y=490, size=20)
+            write_text("Press backspace to go back", x=330, y=520, size=20)
+        pygame.display.update()
+        clock.tick(30)
+        return
     for x in range(len(GameArt.menu_items)):
         mous_pos = pygame.mouse.get_pos()
         w_ = 200
@@ -501,6 +528,7 @@ def gui_loader():
             if mouse_pressed:
                 play_sound(GameArt.bullet_sound)
                 check_selector(x)
+                other_gui = True
         else:
             sound_play[x] = True
 
