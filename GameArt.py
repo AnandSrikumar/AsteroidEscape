@@ -6,7 +6,7 @@ menu = sprites+"Menu/"
 player = sprites+"Player/"
 expl = sprites+"Explotion/"
 background = 'GameArt/Sprites/dark1.jpg'
-background2 = sprites+"space.jpg"
+background2 = sprites+"black.png"
 space_fuel = player+"space_fuel.png"
 asteroids = [sprites+"aestroid1.png", sprites+"aestroid2.png", sprites+"aestroid3.png", sprites+"aestroid4.png",
              space_fuel]
@@ -22,4 +22,6 @@ hover = music+"hover.wav"
 explosions = [expl+"Explosion1_"+str(x)+".png" for x in range(1, 12)]
 explosion_sound = music+"explosion.wav"
 explosion_sound2 = music+"explosion2.wav"
+
+fonts = ['GameArt/Fonts/font1.ttf', 'GameArt/Fonts/font2.ttf']
 

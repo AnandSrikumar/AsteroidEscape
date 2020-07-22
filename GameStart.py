@@ -21,7 +21,7 @@ ast_event, ast_time = pygame.USEREVENT+1, 200
 ast_add = True
 ast_w, ast_h = 70, 80
 sprite_no = 0
-right, left, shift = False, False, False
+right, left, up, down, shift = False, False, False, False, False
 mv_speed = 12
 mouse_pressed = False
 game_start = False
@@ -53,14 +53,19 @@ fuel_send = True
 one_up_counter = 0
 ast_list2 = []
 
-background_loader = SegmentClass.PlayerSegment(0, 0, GameArt.background, wid=w, hie=w, tl=True)
-background_loader2 = SegmentClass.PlayerSegment(0, -h, GameArt.background, wid=w, hie=w, tl=True)
+background_loader = SegmentClass.PlayerSegment(0, 0, GameArt.background, wid=w, hie=h, tl=True)
+background_loader2 = SegmentClass.PlayerSegment(0, -h, GameArt.background, wid=w, hie=h, tl=True)
 player_loader = SegmentClass.PlayerSegment(player_x, player_y, GameArt.spaceship[sprite_no], tl=False,
                                       angle1=angle, rotate=True, wid=70, hie=70)
 player_sprites = GameArt.spaceship
 player_objects = []
 other_gui = False
 gui_no = 0
+health = SegmentClass.PlayerSegment(20, h-40, GameArt.spaceship[0], wid=40, hie=40)
+campaign = False
+loaded = False
+stage_x, stage_y = 0, 0
+background_camp = GameArt.background2
 
 
 def loading_player():
@@ -72,6 +77,16 @@ def loading_player():
 
 
 loading_player()
+
+
+def load_campaign():
+    global player_x, player_y, background_camp, campaign, loaded
+    player_x = 40
+    player_y = h/2
+    loading_player()
+    background_camp = SegmentClass.PlayerSegment(0, 0, GameArt.background2, wid=w, hie=h, tl=True)
+    campaign = True
+    loaded = True
 
 
 def generate_random_x():
@@ -149,14 +164,19 @@ def draw_background():
     global bgr_y, bgr_y2, background_loader, background_loader2
     background_loader.get_image()
     background_loader2.get_image()
-    display_surface.blit(background_loader.image_copy, background_loader.rect)
-    display_surface.blit(background_loader2.image_copy, background_loader2.rect)
-    background_loader.y += 25
-    background_loader2.y += 25
+    display_surface.blit(background_loader.image, background_loader.rect)
+    display_surface.blit(background_loader2.image, background_loader2.rect)
+    background_loader.y += 40
+    background_loader2.y += 40
     if background_loader.y >= h:
         background_loader.y = -h
     if background_loader2.y > h:
         background_loader2.y = -h
+
+
+def draw_background2():
+    background_camp.get_image()
+    display_surface.blit(background_camp.image, background_camp.rect)
 
 
 def draw_player():
@@ -207,7 +227,7 @@ def draw_bullets():
 
 
 def key_press_handle(key):
-    global right, left, shift, other_gui
+    global right, left, shift, other_gui, up, down
     if key[pygame.K_d] or key[pygame.K_RIGHT]:
         right = True
         left = False
@@ -222,9 +242,16 @@ def key_press_handle(key):
     if key[pygame.K_BACKSPACE] and other_gui:
         other_gui = False
 
+    if key[pygame.K_w] or key[pygame.K_UP]:
+        up = True
+        down = False
+    if key[pygame.K_s] or key[pygame.K_DOWN]:
+        down = True
+        up = False
+
 
 def key_release_handle(key):
-    global right, left, shift
+    global right, left, shift, up, down
     if not key[pygame.K_d] and not key[pygame.K_RIGHT]:
         right = False
 
@@ -233,13 +260,15 @@ def key_release_handle(key):
 
     if not key[pygame.K_RSHIFT] and not key[pygame.K_LSHIFT]:
         shift = False
+    if not key[pygame.K_w] and not key[pygame.K_UP]:
+        up = False
+    if not key[pygame.K_s] and not key[pygame.K_DOWN]:
+        down = False
 
 
 def draw_player_health():
-    health = SegmentClass.PlayerSegment(20, h-40, GameArt.spaceship[0], wid=40, hie=40)
-    health.get_image()
     display_surface.blit(health.image, health.rect)
-    write_text("X"+str(player_lives), x=45, y=h-40)
+    write_text(" "+str(player_lives), x=45, y=h-40)
 
 
 def draw_destroy_meter():
@@ -297,6 +326,36 @@ def movements():
                 player_x -= mv_speed
 
 
+def movements2():
+    global mv_speed, player_x, player_y
+    if right:
+        if player_x + player_w/2 < w:
+            if shift:
+                player_x += mv_speed*1.5
+            else:
+                player_x += mv_speed
+    if left:
+        if player_x - player_w/2 > 0:
+            if shift:
+                player_x -= mv_speed * 1.5
+            else:
+                player_x -= mv_speed
+
+    if up:
+        if player_y - player_h/2 > 0:
+            if shift:
+                player_y -= mv_speed*1.5
+            else:
+                player_y -= mv_speed
+
+    if down:
+        if player_y + player_h/2 < h:
+            if shift:
+                player_y += mv_speed*1.5
+            else:
+                player_y += mv_speed
+
+
 def calc_angle():
     global angle, slope, dx
 
@@ -328,7 +387,11 @@ def draw_asteroids():
         ast_list2.remove(rem)
 
 
-def write_text(text, x=w/2, y=h-150, font_name='freesansbold.ttf', size=14, color=(255, 255, 255)):
+def draw_enemies():
+    pass
+
+
+def write_text(text, x=w/2, y=h-150, font_name=GameArt.fonts[0], size=14, color=(255, 255, 255)):
     text = str(text)
     font = pygame.font.Font(font_name, size)
     text = font.render(text, True, color)
@@ -338,7 +401,10 @@ def write_text(text, x=w/2, y=h-150, font_name='freesansbold.ttf', size=14, colo
 
 
 def draw_stage():
-    draw_background()
+    if not loaded:
+        draw_background()
+    else:
+        draw_background2()
 
 
 def cpu_limit():
@@ -453,12 +519,17 @@ def run_game():
     draw_explosion("ast")
     check_game_over()
     if not paused and not dead:
-        movements()
+        if not loaded:
+            movements()
+            draw_asteroids()
+            generate_random_x()
+            draw_destroy_meter()
+        elif loaded:
+            movements2()
+            draw_enemies()
         load_bullets()
         calc_angle()
-        draw_destroy_meter()
-        draw_asteroids()
-        generate_random_x()
+
         song_init()
     elif paused:
         write_text("PAUSED", w/2, h/2, size=20)
@@ -469,7 +540,7 @@ def run_game():
 def check_selector(x):
     global game_start, gui_no
     if x == 0:
-        game_start = True
+        gui_no = 0
     elif x == 1:
         gui_no = 1
     elif x == 2:
@@ -487,10 +558,11 @@ def profiler():
 
 
 def gui_loader():
-    global sound_play, other_gui
+    global sound_play, other_gui, game_start
     game_init()
     x_ = w/2
     y_ = h/2
+    mous_pos = pygame.mouse.get_pos()
     if other_gui:
         if gui_no == 2:
             write_text("**********A simple game made using python*********", x=330, y=340, size=20)
@@ -510,11 +582,23 @@ def gui_loader():
                        size=20)
             write_text("Press ESC to exit the game", x=330, y=490, size=20)
             write_text("Press backspace to go back", x=330, y=520, size=20)
+        if gui_no == 0:
+            pygame.draw.rect(display_surface, (0, 0, 255), (x_-90, y_+40, 220, 70))
+            pygame.draw.rect(display_surface, (0, 0, 255), (x_-90, y_+190, 220, 70))
+            write_text("ARCADE", x=x_-20, y=y_+50)
+            write_text("CAMPAIGN", x=x_-20, y=y_+200)
+            rect1 = pygame.Rect(x_-90, y_+40, 220, 70)
+            rect2 = pygame.Rect(x_-90, y_+190, 220, 70)
+            if rect1.collidepoint(mous_pos) and mouse_pressed:
+                game_start = True
+            if rect2.collidepoint(mous_pos) and mouse_pressed:
+                if not loaded:
+                    load_campaign()
+                    game_start = True
         pygame.display.update()
         clock.tick(30)
         return
     for x in range(len(GameArt.menu_items)):
-        mous_pos = pygame.mouse.get_pos()
         w_ = 200
         h_ = 100
         rect_cords = (x_-75, y_-25, w_-50, h_-50)
