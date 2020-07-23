@@ -65,6 +65,8 @@ health = SegmentClass.PlayerSegment(20, h-40, GameArt.spaceship[0], wid=40, hie=
 campaign = False
 loaded = False
 stage_x, stage_y = 0, 0
+level = 0
+stage_limits = {0: [15000, 6000]}
 background_camp = GameArt.background2
 
 
@@ -168,15 +170,56 @@ def draw_background():
     display_surface.blit(background_loader2.image, background_loader2.rect)
     background_loader.y += 40
     background_loader2.y += 40
-    if background_loader.y >= h:
+    if background_loader.y > h:
         background_loader.y = -h
     if background_loader2.y > h:
         background_loader2.y = -h
 
 
 def draw_background2():
+    global stage_x, stage_y
     background_camp.get_image()
     display_surface.blit(background_camp.image, background_camp.rect)
+    if right and not end_check("right") and player_x >= w/2:
+        if shift:
+            stage_x -= mv_speed*1.5
+            background_camp.x -= mv_speed*1.5
+        else:
+            stage_x -= mv_speed
+            background_camp.x -= mv_speed
+    if left and not end_check("left") and player_x <= w/2-5:
+        if shift:
+            stage_x += mv_speed*1.5
+            background_camp.x += mv_speed*1.5
+        else:
+            stage_x -= mv_speed
+            background_camp.x += mv_speed
+
+    if up and not end_check("up") and player_y < h/2:
+        if shift:
+            stage_y += mv_speed*1.5
+            background_camp.y += mv_speed*1.5
+        else:
+            stage_y += mv_speed
+            background_camp.y += mv_speed
+
+    if down and not end_check("down") and player_y >= h/2+5:
+        if shift:
+            stage_y -= mv_speed*1.5
+            background_camp.y -= mv_speed*1.5
+        else:
+            stage_y -= mv_speed
+            background_camp.y -= mv_speed
+
+    if background_camp.x < -w:
+        background_camp.x = w
+    if background_camp.x > w:
+        background_camp.x = -w
+
+    if background_camp.y < -h:
+        background_camp.y = h
+    if background_camp.y > h:
+        background_camp.y = -h
 
 
 def draw_player():
@@ -291,7 +334,7 @@ def play_music():
         pygame.mixer.music.load(GameArt.background_songs[song_no])
         pygame.mixer.music.play()
         pygame.mixer.music.set_volume(0.3)
-    write_text("Song: " + GameArt.background_songs[song_no][20: -4], w - 200, 20)
+    write_text("Song: " + GameArt.background_songs[song_no][20: -4], w - 250, 20)
 
 
 def play_sound(sound):
@@ -314,46 +357,70 @@ def movements():
     global mv_speed, player_x
     if right:
         if player_x + player_w/2 < w:
-            if shift:
-                player_x += mv_speed*1.5
-            else:
-                player_x += mv_speed
+            mv("right")
     if left:
         if player_x - player_w/2 > 0:
-            if shift:
-                player_x -= mv_speed * 1.5
-            else:
-                player_x -= mv_speed
+            mv("left")
+
+
+def end_check(side):
+    if side == "right":
+        return -(stage_x - w/2) >= stage_limits[level][0]
+    if side == "left":
+        return stage_x + w/2 > 0
+    if side == "up":
+        return stage_y + h/2 > 0
+    if side == "down":
+        return -(stage_y - w/2) >= stage_limits[level][1]
+
+
+def mv(side):
+    global player_x, player_y
+    if side == "right":
+        if shift:
+            player_x += mv_speed * 1.5
+        else:
+            player_x += mv_speed
+    if side == "left":
+        if shift:
+            player_x -= mv_speed * 1.5
+        else:
+            player_x -= mv_speed
+    if side == "up":
+        if shift:
+            player_y -= mv_speed * 1.5
+        else:
+            player_y -= mv_speed
+    if side == "down":
+        if shift:
+            player_y += mv_speed * 1.5
+        else:
+            player_y += mv_speed
 
 
 def movements2():
     global mv_speed, player_x, player_y
     if right:
-        if player_x + player_w/2 < w:
-            if shift:
-                player_x += mv_speed*1.5
-            else:
-                player_x += mv_speed
+        if player_x + player_w/2 < w and end_check("right"):
+            mv("right")
+        elif player_x < w/2:
+            mv("right")
     if left:
-        if player_x - player_w/2 > 0:
-            if shift:
-                player_x -= mv_speed * 1.5
-            else:
-                player_x -= mv_speed
+        if player_x - player_w/2 > 0 and end_check("left"):
+            mv("left")
+        elif player_x > w/2-5:
+            mv("left")
 
     if up:
-        if player_y - player_h/2 > 0:
-            if shift:
-                player_y -= mv_speed*1.5
-            else:
-                player_y -= mv_speed
-
+        if player_y - player_h/2 > 0 and end_check("up"):
+            mv("up")
+        elif player_y > h/2-5:
+            mv("up")
     if down:
-        if player_y + player_h/2 < h:
-            if shift:
-                player_y += mv_speed*1.5
-            else:
-                player_y += mv_speed
+        if player_y + player_h/2 < h and end_check("down"):
+            mv("down")
+        elif player_y < h/2:
+            mv("down")
 
 
 def calc_angle():
@@ -440,7 +507,7 @@ def collision_detection_bullet(bullet_rect, index=0):
                 ast[1] = 2000
                 score += 1
                 one_up_counter += 1
-                if one_up_counter == 50:
+                if one_up_counter == 100:
                     player_lives += 1
                     one_up_counter = 0
                 index[0].x = -2000
@@ -500,7 +567,10 @@ def reset():
 
 
 def game_init():
-    display_surface.fill((0, 0, 0))
+    if loaded:
+        display_surface.fill((18, 16, 18))
+    else:
+        display_surface.fill((0, 0, 0))
     keys = pygame.key.get_pressed()
     key_press_handle(keys)
     key_release_handle(keys)
