@@ -68,6 +68,8 @@ stage_x, stage_y = 0, 0
 level = 0
 stage_limits = {0: [15000, 6000]}
 background_camp = GameArt.background2
+game_over = False
+resetting = False
 
 
 def loading_player():
@@ -291,6 +293,12 @@ def key_press_handle(key):
     if key[pygame.K_s] or key[pygame.K_DOWN]:
         down = True
         up = False
+
+    if key[pygame.K_y] and game_over:
+        reset("reset mode")
+
+    if key[pygame.K_n] and (game_over or paused):
+        reset("reset menu")
 
 
 def key_release_handle(key):
@@ -551,19 +559,40 @@ def check_fuel():
 
 
 def check_game_over():
-    if player_lives == 0:
+    global  game_over
+    if player_lives == 0 and not resetting:
         write_text("GAME OVER", w/2, h/2, size=20)
+        write_text("PRESS Y TO PLAY AGAIN", w/2, h/2+40, size=20)
+        write_text("PRESS N TO GO TO MENU", w/2, h/2+80, size=20)
+        game_over = True
 
 
-def reset():
-    global dead, counter, player_x, expl_no, destroy_meter, ast_list2
-    if player_lives > 0:
-        counter = 0
-        player_x = w/2
-        expl_no = 0
-        dead = False
-        destroy_meter = 100
-        ast_list2 = []
+def clear_all():
+    global dead, counter, player_x, expl_no, destroy_meter, ast_list2, player_lives, score, paused
+    counter = 0
+    player_x = w / 2
+    expl_no = 0
+    dead = False
+    destroy_meter = 100
+    ast_list2 = []
+    paused = False
+
+
+def reset(reason="life lose"):
+    global game_start, player_lives, score, gui_no, other_gui
+    if reason == "life lose" and player_lives > 0:
+        clear_all()
+
+    if reason == "reset mode":
+        clear_all()
+        player_lives = 4
+        score = 0
+
+    if reason == "reset menu":
+        clear_all()
+        game_start = False
+        gui_no = 0
+        other_gui = False
 
 
 def game_init():
@@ -602,7 +631,7 @@ def run_game():
 
         song_init()
     elif paused:
-        write_text("PAUSED", w/2, h/2, size=20)
+        write_text("PAUSED! Press \"N\" to go to main menu!", w/2-210, h/2, size=20)
     pygame.display.update()
     clock.tick(30)
 
@@ -653,12 +682,12 @@ def gui_loader():
             write_text("Press ESC to exit the game", x=330, y=490, size=20)
             write_text("Press backspace to go back", x=330, y=520, size=20)
         if gui_no == 0:
-            pygame.draw.rect(display_surface, (0, 0, 255), (x_-90, y_+40, 220, 70))
-            pygame.draw.rect(display_surface, (0, 0, 255), (x_-90, y_+190, 220, 70))
-            write_text("ARCADE", x=x_-20, y=y_+50)
-            write_text("CAMPAIGN", x=x_-20, y=y_+200)
-            rect1 = pygame.Rect(x_-90, y_+40, 220, 70)
-            rect2 = pygame.Rect(x_-90, y_+190, 220, 70)
+            pygame.draw.rect(display_surface, (0, 0, 255), (x_-90, y_+40, 180, 45))
+            pygame.draw.rect(display_surface, (0, 0, 255), (x_-90, y_+140, 180, 45))
+            write_text("ARCADE", x=x_-30, y=y_+50)
+            write_text("CAMPAIGN", x=x_-30, y=y_+150)
+            rect1 = pygame.Rect(x_-90, y_+40, 180, 45)
+            rect2 = pygame.Rect(x_-90, y_+140, 180, 45)
             if rect1.collidepoint(mous_pos) and mouse_pressed:
                 game_start = True
             if rect2.collidepoint(mous_pos) and mouse_pressed:
