@@ -5,7 +5,7 @@ import SegmentClass
 import sys
 import random
 import psutil
-import numpy as np
+import LevelBuilder
 
 WHITE = (255, 255, 255)
 BLACK = (0, 0, 0)
@@ -70,6 +70,8 @@ stage_limits = {0: [15000, 6000]}
 background_camp = GameArt.background2
 game_over = False
 resetting = False
+bricks = []
+level_objects = []
 
 
 def loading_player():
@@ -84,13 +86,14 @@ loading_player()
 
 
 def load_campaign():
-    global player_x, player_y, background_camp, campaign, loaded
+    global player_x, player_y, background_camp, campaign, loaded, bricks
     player_x = 40
     player_y = h/2
     loading_player()
     background_camp = SegmentClass.PlayerSegment(0, 0, GameArt.background2, wid=w, hie=h, tl=True)
     campaign = True
     loaded = True
+    bricks = LevelBuilder.load_bricks()
 
 
 def generate_random_x():
@@ -205,7 +208,7 @@ def draw_background2():
             stage_y += mv_speed
             background_camp.y += mv_speed
 
-    if down and not end_check("down") and player_y >= h/2+5:
+    if down and not end_check("down") and player_y >= h/2:
         if shift:
             stage_y -= mv_speed*1.5
             background_camp.y -= mv_speed*1.5
@@ -375,11 +378,11 @@ def end_check(side):
     if side == "right":
         return -(stage_x - w/2) >= stage_limits[level][0]
     if side == "left":
-        return stage_x + w/2 > 0
+        return stage_x > 0
     if side == "up":
-        return stage_y + h/2 > 0
+        return stage_y > 0
     if side == "down":
-        return -(stage_y - w/2) >= stage_limits[level][1]
+        return -(stage_y - h/2) >= stage_limits[level][1]
 
 
 def mv(side):
@@ -462,8 +465,13 @@ def draw_asteroids():
         ast_list2.remove(rem)
 
 
-def draw_enemies():
-    pass
+def draw_level_builders():
+    global bricks, level_objects
+    for x in bricks:
+        x[0].get_image()
+        display_surface.blit(x[0].image, x[0].rect)
+        x[0].x = stage_x + x[2]
+        x[0].y = stage_y + x[3]
 
 
 def write_text(text, x=w/2, y=h-150, font_name=GameArt.fonts[0], size=14, color=(255, 255, 255)):
@@ -480,6 +488,7 @@ def draw_stage():
         draw_background()
     else:
         draw_background2()
+        draw_level_builders()
 
 
 def cpu_limit():
@@ -625,7 +634,6 @@ def run_game():
             draw_destroy_meter()
         elif loaded:
             movements2()
-            draw_enemies()
         load_bullets()
         calc_angle()
 

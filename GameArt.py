@@ -24,4 +24,7 @@ explosion_sound = music+"explosion.wav"
 explosion_sound2 = music+"explosion2.wav"
 
 fonts = ['GameArt/Fonts/font1.ttf', 'GameArt/Fonts/font2.ttf']
+levelBuild = 'GameArt/Sprites/levelBuilder/'
+bricks = [levelBuild+"spacebrick.jpg", levelBuild+"spacebrick2.jpg", levelBuild+"spacebrick3.jpg"]
+objects = [levelBuild+"object1.jpg", levelBuild+"object2.jpg", levelBuild+"object3.jpg"]
 
