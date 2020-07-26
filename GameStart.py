@@ -72,6 +72,9 @@ game_over = False
 resetting = False
 bricks = []
 level_objects = []
+collided = False
+mv_right, mv_left, mv_up, mv_down = True, True, True, True
+locker = None
 
 
 def loading_player():
@@ -185,22 +188,22 @@ def draw_background2():
     global stage_x, stage_y
     background_camp.get_image()
     display_surface.blit(background_camp.image, background_camp.rect)
-    if right and not end_check("right") and player_x >= w/2:
+    if right and not end_check("right") and player_x >= w/2 and mv_right:
         if shift:
             stage_x -= mv_speed*1.5
             background_camp.x -= mv_speed*1.5
         else:
             stage_x -= mv_speed
             background_camp.x -= mv_speed
-    if left and not end_check("left") and player_x <= w/2-5:
+    if left and not end_check("left") and player_x <= w/2-5 and mv_left:
         if shift:
             stage_x += mv_speed*1.5
             background_camp.x += mv_speed*1.5
         else:
-            stage_x -= mv_speed
+            stage_x += mv_speed
             background_camp.x += mv_speed
 
-    if up and not end_check("up") and player_y < h/2:
+    if up and not end_check("up") and player_y < h/2 and mv_up:
         if shift:
             stage_y += mv_speed*1.5
             background_camp.y += mv_speed*1.5
@@ -208,7 +211,7 @@ def draw_background2():
             stage_y += mv_speed
             background_camp.y += mv_speed
 
-    if down and not end_check("down") and player_y >= h/2:
+    if down and not end_check("down") and player_y >= h/2 and mv_down:
         if shift:
             stage_y -= mv_speed*1.5
             background_camp.y -= mv_speed*1.5
@@ -411,23 +414,23 @@ def mv(side):
 
 def movements2():
     global mv_speed, player_x, player_y
-    if right:
+    if right and mv_right:
         if player_x + player_w/2 < w and end_check("right"):
             mv("right")
         elif player_x < w/2:
             mv("right")
-    if left:
+    if left and mv_left:
         if player_x - player_w/2 > 0 and end_check("left"):
             mv("left")
         elif player_x > w/2-5:
             mv("left")
 
-    if up:
+    if up and mv_up:
         if player_y - player_h/2 > 0 and end_check("up"):
             mv("up")
         elif player_y > h/2-5:
             mv("up")
-    if down:
+    if down and mv_down:
         if player_y + player_h/2 < h and end_check("down"):
             mv("down")
         elif player_y < h/2:
@@ -465,13 +468,49 @@ def draw_asteroids():
         ast_list2.remove(rem)
 
 
+def check_bounds(rect):
+    if (0 < stage_x + rect[0] + rect[2] < w) and (0 < stage_y + rect[1] + rect[3] < h):
+        return True
+
+
 def draw_level_builders():
     global bricks, level_objects
+    write_text(stage_x)
     for x in bricks:
+        if not check_bounds(x[0].rect):
+            pass
         x[0].get_image()
         display_surface.blit(x[0].image, x[0].rect)
         x[0].x = stage_x + x[2]
         x[0].y = stage_y + x[3]
+        level_collide((x[0].x, x[0].y, x[0].width, x[0].height), x[0], x[1])
+
+
+def level_collide(obj_rect, locks, col_type):
+    global right, collided, locker, mv_right, mv_left, mv_down, mv_up
+    rect1 = pygame.Rect(player_x-player_w/2, player_y-player_h/2, player_w*0.8, player_h*0.8)
+    rect2 = pygame.Rect(obj_rect)
+    #pygame.draw.rect(display_surface, WHITE, rect2, 5)
+    #pygame.draw.rect(display_surface, WHITE, rect1, 5)
+    if rect2.colliderect(rect1):
+        locker = locks
+        if rect1[0] < rect2[0]:
+            mv_right = False
+        if rect1[0] > rect2[0]+rect2[2]*0.85:
+            mv_left = False
+
+        if rect1[1] > rect2[1] + rect2[3]*0.80:
+            mv_up = False
+        if rect1[1] < rect2[1]:
+            mv_down = False
+
+    elif locker is not None:
+        lock_rect = pygame.Rect(locker.x, locker.y, locker.width, locker.height)
+        if not rect1.colliderect(lock_rect):
+            locker = None
+
+    elif locker is None:
+        mv_right, mv_left, mv_up, mv_down = True, True, True, True
 
 
 def write_text(text, x=w/2, y=h-150, font_name=GameArt.fonts[0], size=14, color=(255, 255, 255)):
@@ -588,7 +627,7 @@ def clear_all():
 
 
 def reset(reason="life lose"):
-    global game_start, player_lives, score, gui_no, other_gui
+    global game_start, player_lives, score, gui_no, other_gui, loaded
     if reason == "life lose" and player_lives > 0:
         clear_all()
 
@@ -602,6 +641,7 @@ def reset(reason="life lose"):
         game_start = False
         gui_no = 0
         other_gui = False
+        loaded = False
 
 
 def game_init():
