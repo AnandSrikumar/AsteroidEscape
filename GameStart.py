@@ -75,6 +75,9 @@ level_objects = []
 collided = False
 mv_right, mv_left, mv_up, mv_down = True, True, True, True
 locker = None
+enemies = []
+slope_e, dx_e = 0, 0
+brick_expl = []
 
 
 def loading_player():
@@ -89,14 +92,15 @@ loading_player()
 
 
 def load_campaign():
-    global player_x, player_y, background_camp, campaign, loaded, bricks
+    global player_x, player_y, background_camp, campaign, loaded, bricks, enemies
     player_x = 40
     player_y = h/2
     loading_player()
     background_camp = SegmentClass.PlayerSegment(0, 0, GameArt.background2, wid=w, hie=h, tl=True)
     campaign = True
     loaded = True
-    bricks = LevelBuilder.load_bricks()
+    bricks = LevelBuilder.load_elements("bricks")
+    enemies = LevelBuilder.load_elements("enemies")
 
 
 def generate_random_x():
@@ -468,6 +472,15 @@ def draw_asteroids():
         ast_list2.remove(rem)
 
 
+def calculate_player_pos(enem_x, enem_y):
+    global slope_e, dx_e
+    dx_e = player_x - enem_x
+    dy = player_y - enem_y
+    rad = math.atan2(dy, dx_e)
+    angle_e = math.degrees(-rad) + 90
+    return [angle_e, enem_x, enem_y]
+
+
 def check_bounds(rect):
     if (0 < stage_x + rect[0] + rect[2] < w) and (0 < stage_y + rect[1] + rect[3] < h):
         return True
@@ -483,10 +496,41 @@ def draw_level_builders():
         display_surface.blit(x[0].image, x[0].rect)
         x[0].x = stage_x + x[2]
         x[0].y = stage_y + x[3]
-        level_collide((x[0].x, x[0].y, x[0].width, x[0].height), x[0], x[1])
+        level_collide((x[0].x, x[0].y, x[0].width, x[0].height), x[0])
+        bullet_level_collide((x[0].x, x[0].y, x[0].width, x[0].height), x[1], x)
 
 
-def level_collide(obj_rect, locks, col_type):
+def draw_enemies():
+    global enemies
+    for e in enemies:
+        if not check_bounds(e[0].rect):
+            pass
+        angle = calculate_player_pos(e[0].x, e[0].y)[0]
+        e[0].angle1 = angle
+        e[0].get_image()
+        display_surface.blit(e[0].image_copy, e[0].rect)
+        e[0].x = stage_x + e[2]
+        e[0].y = stage_y + e[3]
+
+
+def load_brick_explosion(x, y):
+    global brick_expl
+    for s in GameArt.explosions_bricks:
+        br_ex = SegmentClass.PlayerSegment(x, y, s)
+        brick_expl.append(br_ex)
+
+
+def bullet_level_collide(obj_rect, brick_type, brick):
+    global bullets2, bricks, explosions
+    for bull in bullets2:
+        if bull[0].rect.colliderect(obj_rect):
+            if brick_type == 1:
+                bricks.remove(brick)
+                load_brick_explosion(obj_rect[0] , obj_rect[1])
+            bull[0].x = -2000
+
+
+def level_collide(obj_rect, locks):
     global right, collided, locker, mv_right, mv_left, mv_down, mv_up
     rect1 = pygame.Rect(player_x-player_w/2, player_y-player_h/2, player_w*0.8, player_h*0.8)
     rect2 = pygame.Rect(obj_rect)
@@ -499,7 +543,7 @@ def level_collide(obj_rect, locks, col_type):
         if rect1[0] > rect2[0]+rect2[2]*0.85:
             mv_left = False
 
-        if rect1[1] > rect2[1] + rect2[3]*0.80:
+        if rect1[1] > rect2[1] + rect2[3]*0.50:
             mv_up = False
         if rect1[1] < rect2[1]:
             mv_down = False
@@ -528,6 +572,7 @@ def draw_stage():
     else:
         draw_background2()
         draw_level_builders()
+        draw_enemies()
 
 
 def cpu_limit():
@@ -570,7 +615,7 @@ def collision_detection_bullet(bullet_rect, index=0):
 
 
 def draw_explosion(whose):
-    global expl_no, dead, player_lives, player_x, counter, explosions
+    global expl_no, dead, player_lives, player_x, counter, explosions, brick_expl
     if whose == "player" and dead:
         exp = SegmentClass.PlayerSegment(player_x, player_y, GameArt.explosions[expl_no], wid=160, hie=160)
         exp.get_image()
@@ -579,11 +624,11 @@ def draw_explosion(whose):
             expl_no += 1
         else:
             counter += 1
-        if counter >= 15:
+        if counter >= 10:
             reset()
         play_sound(GameArt.explosion_sound)
     exp_rem = []
-    if whose == "ast":
+    if whose == "ast" and not loaded:
         for e in explosions:
             ex = SegmentClass.PlayerSegment(e[0], e[1], GameArt.explosions[e[4]], wid=e[2], hie=e[3])
             ex.get_image()
@@ -599,6 +644,13 @@ def draw_explosion(whose):
                 e[6] = False
         for e in exp_rem:
             explosions.remove(e)
+
+    if whose == "brick":
+        for e in brick_expl:
+            e.get_image()
+            display_surface.blit(e.image, e.rect)
+            play_sound(GameArt.hit)
+        brick_expl.clear()
 
 
 def check_fuel():
@@ -642,6 +694,7 @@ def reset(reason="life lose"):
         gui_no = 0
         other_gui = False
         loaded = False
+        player_lives = 4
 
 
 def game_init():
@@ -665,6 +718,7 @@ def run_game():
     draw_bullets()
     draw_explosion("player")
     draw_explosion("ast")
+    draw_explosion("brick")
     check_game_over()
     if not paused and not dead:
         if not loaded:
