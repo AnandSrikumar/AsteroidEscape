@@ -78,7 +78,7 @@ locker = None
 enemies = []
 slope_e, dx_e = 0, 0
 brick_expl = []
-
+enem_speed = 10
 
 def loading_player():
     global player_objects
@@ -488,7 +488,6 @@ def check_bounds(rect):
 
 def draw_level_builders():
     global bricks, level_objects
-    write_text(stage_x)
     for x in bricks:
         if not check_bounds(x[0].rect):
             pass
@@ -510,14 +509,56 @@ def draw_enemies():
         e[0].angle1 = angle
         e[0].get_image()
         display_surface.blit(e[0].image_copy, e[0].rect)
-        e[0].x = stage_x + e[2]
-        e[0].y = stage_y + e[3]
+        if not e[9]:
+            e[0].x = stage_x + e[2]
+            e[0].y = stage_y + e[3]
+        elif e[9]:
+            e[0].x = e[2]
+            e[0].y = e[3]
+
+        move_enemy(e)
         if e[1] == 1:
             if e[4] == e[5]:
                 load_enem_bullets(ang_list[1], ang_list[2], angle)
                 e[4] = 0
             else:
                 e[4] += 1
+
+
+def move_enemy(e):
+    e[9] = True
+    if e[6][0] == -1:
+        e[6][0] = player_x
+        e[6][1] = player_y
+        e[7] = e[2] - player_x
+        dy = e[3] - player_y
+        if e[7] != 0:
+            e[8] = dy / e[7]
+    else:
+        x_speed = enem_speed
+        y_speed = e[8] * enem_speed
+        if e[8] > 1:
+            y_speed = enem_speed
+            x_speed = y_speed / e[8]
+        elif e[8] < -1:
+            y_speed = -enem_speed
+            x_speed = y_speed / e[8]
+        if e[7] < 0:
+            e[2] += x_speed
+            e[3] += y_speed
+        else:
+            e[2] -= x_speed
+            e[3] -= y_speed
+
+        """if (e[2] <= player_x and e[7] > 0) or (e[2] >= player_x and e[7] < 0):
+            if y_speed > 0:
+                if e[3] >= e[6][1]:
+                    e[6][0] = -1
+                    e[6][1] = -1
+            if y_speed < 0:
+                if e[3] <= e[6][1]:
+                    e[6][0] = -1
+                    e[6][1] = -1"""
 
 
 def load_enem_bullets(x, y, a1):

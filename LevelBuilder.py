@@ -29,6 +29,8 @@ def load_elements(type):
         if type == "bricks":
             elem_obj.append([obj, x[3], x[0], x[1]])
         elif type == "enemies":
-            elem_obj.append([obj, x[3], x[0], x[1], x[8], x[9]])
+            elem_obj.append([obj, x[3], x[0], x[1], x[8], x[9], [-1, -1], 0, 0, False])
     return elem_obj
 
+
+#enemies [sprite object, shoots bullet, x, y, bullet_reload, wait till next bullet, movement bonds, dx, slope, did appear]
