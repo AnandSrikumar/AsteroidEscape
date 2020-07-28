@@ -505,12 +505,30 @@ def draw_enemies():
     for e in enemies:
         if not check_bounds(e[0].rect):
             pass
-        angle = calculate_player_pos(e[0].x, e[0].y)[0]
+        ang_list = calculate_player_pos(e[0].x, e[0].y)
+        angle = ang_list[0]
         e[0].angle1 = angle
         e[0].get_image()
         display_surface.blit(e[0].image_copy, e[0].rect)
         e[0].x = stage_x + e[2]
         e[0].y = stage_y + e[3]
+        if e[1] == 1:
+            if e[4] == e[5]:
+                load_enem_bullets(ang_list[1], ang_list[2], angle)
+                e[4] = 0
+            else:
+                e[4] += 1
+
+
+def load_enem_bullets(x, y, a1):
+    global bullets2
+    br = SegmentClass.PlayerSegment(x, y, GameArt.enem_bullet, angle1=a1, rotate=True, wid=10, hie=20)
+    dx = player_x - x
+    dy = player_y - y
+    slope = 0
+    if dx != 0:
+        slope = dy/dx
+    bullets2.append([br, slope, dx])
 
 
 def load_brick_explosion(x, y):
