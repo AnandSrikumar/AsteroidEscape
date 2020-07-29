@@ -80,6 +80,7 @@ slope_e, dx_e = 0, 0
 brick_expl = []
 enem_speed = 10
 
+
 def loading_player():
     global player_objects
     for sprite in player_sprites:
@@ -92,7 +93,7 @@ loading_player()
 
 
 def load_campaign():
-    global player_x, player_y, background_camp, campaign, loaded, bricks, enemies
+    global player_x, player_y, background_camp, campaign, loaded, bricks, enemies, level_objects
     player_x = 40
     player_y = h/2
     loading_player()
@@ -101,6 +102,7 @@ def load_campaign():
     loaded = True
     bricks = LevelBuilder.load_elements("bricks")
     enemies = LevelBuilder.load_elements("enemies")
+    level_objects = LevelBuilder.load_elements("objects")
 
 
 def generate_random_x():
@@ -486,17 +488,32 @@ def check_bounds(rect):
         return True
 
 
-def draw_level_builders():
+def draw_level_builders(num):
     global bricks, level_objects
-    for x in bricks:
+    elems = []
+    if num == 0:
+        elems = bricks
+    elif num == 1:
+        elems = level_objects
+    for x in elems:
         if not check_bounds(x[0].rect):
             pass
+        angs = calculate_player_pos(x[0].x, x[0].y)
         x[0].get_image()
         display_surface.blit(x[0].image, x[0].rect)
         x[0].x = stage_x + x[2]
         x[0].y = stage_y + x[3]
+        if num == 1:
+            if x[1] == 0:
+                if x[4] == x[5]:
+                    load_enem_bullets(angs[1], angs[2], angs[0])
+                    x[4] = 0
+                else:
+                    x[4] += 1
+
         level_collide((x[0].x, x[0].y, x[0].width, x[0].height), x[0])
-        bullet_level_collide((x[0].x, x[0].y, x[0].width, x[0].height), x[1], x)
+        if num != 1:
+            bullet_level_collide((x[0].x, x[0].y, x[0].width, x[0].height), x[1], x)
 
 
 def draw_enemies():
@@ -550,15 +567,12 @@ def move_enemy(e):
             e[2] -= x_speed
             e[3] -= y_speed
 
-        """if (e[2] <= player_x and e[7] > 0) or (e[2] >= player_x and e[7] < 0):
-            if y_speed > 0:
-                if e[3] >= e[6][1]:
-                    e[6][0] = -1
-                    e[6][1] = -1
-            if y_speed < 0:
-                if e[3] <= e[6][1]:
-                    e[6][0] = -1
-                    e[6][1] = -1"""
+        if (e[2] <= e[6][0] and e[7] > 0) or (e[2] >= e[6][1] and e[7] < 0):
+            e[6][0] = -1
+            e[6][1] = -1
+        if e[3] <= 0 or e[2] <= 0:
+            e[6][0] = -1
+            e[6][1] = -1
 
 
 def load_enem_bullets(x, y, a1):
@@ -630,7 +644,8 @@ def draw_stage():
         draw_background()
     else:
         draw_background2()
-        draw_level_builders()
+        draw_level_builders(0)
+        draw_level_builders(1)
         draw_enemies()
 
 
