@@ -79,6 +79,8 @@ enemies = []
 slope_e, dx_e = 0, 0
 brick_expl = []
 enem_speed = 10
+invincible = False
+invc_event, invc_time = pygame.USEREVENT+4, 3000
 
 
 def loading_player():
@@ -142,7 +144,7 @@ def load_bullets():
 
 
 def event_handling():
-    global ast_add, mouse_pressed, can_fire, paused, can_play_sound, fuel_send
+    global ast_add, mouse_pressed, can_fire, paused, can_play_sound, fuel_send, invincible
     for event in pygame.event.get():
         if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_ESCAPE:
@@ -174,6 +176,8 @@ def event_handling():
             can_fire = True
         if event.type == fuel_event:
             fuel_send = True
+        if event.type == invc_event:
+            invincible = False
 
 
 def draw_background():
@@ -261,6 +265,8 @@ def draw_bullets():
         bull[0].get_image()
         display_surface.blit(bull[0].image, bull[0].rect)
         collision_detection_bullet(bull[0].rect, bull)
+        if len(bull) > 3:
+            enem_bullet_collide(bull[0].rect, bull)
         y_speed = bull[1] * x_speed
         if bull[1] > 1:
             y_speed = bullet_speed
@@ -338,7 +344,8 @@ def draw_destroy_meter():
     global destroy_meter
     pygame.draw.rect(display_surface, WHITE, (w-130, h-30, 100, 10), 5)
     pygame.draw.rect(display_surface, RED, (w - 130, h - 30, destroy_meter, 10))
-    destroy_meter -= 0.05
+    if not loaded:
+        destroy_meter -= 0.05
 
 
 def draw_score():
@@ -532,7 +539,7 @@ def draw_enemies():
         elif e[9]:
             e[0].x = e[2]
             e[0].y = e[3]
-
+        enem_collide(e)
         move_enemy(e)
         if e[1] == 1:
             if e[4] == e[5]:
@@ -542,7 +549,27 @@ def draw_enemies():
                 e[4] += 1
 
 
+def enem_collide(enem):
+    global dead, player_lives, explosions, enemies
+    enem_rect = enem[0].rect
+    player_rect = pygame.Rect(player_x-player_w/2, player_y-player_h/2, player_w, player_h )
+    if enem_rect.colliderect(player_rect) and not invincible:
+        dead = True
+        player_lives -= 1
+        explosions.append([enem_rect[0], enem_rect[1], 160, 160, 0, 0, True])
+        enemies.remove(enem)
+
+
+def enem_bullet_collide(bull_rect, bull):
+    global destroy_meter
+    player_rect = pygame.Rect(player_x-player_w/2, player_y-player_h/2, player_w, player_h )
+    if bull_rect.colliderect(player_rect) and not invincible:
+        destroy_meter -= 10
+        bull[0].x = -2000
+
+
 def move_enemy(e):
+    global dead
     e[9] = True
     if e[6][0] == -1:
         e[6][0] = player_x
@@ -570,7 +597,7 @@ def move_enemy(e):
         if (e[2] <= e[6][0] and e[7] > 0) or (e[2] >= e[6][1] and e[7] < 0):
             e[6][0] = -1
             e[6][1] = -1
-        if e[3] <= 0 or e[2] <= 0:
+        if e[3] <= 0 or e[2] <= 0 or e[3] >= h:
             e[6][0] = -1
             e[6][1] = -1
 
@@ -583,7 +610,7 @@ def load_enem_bullets(x, y, a1):
     slope = 0
     if dx != 0:
         slope = dy/dx
-    bullets2.append([br, slope, dx])
+    bullets2.append([br, slope, dx, 1])
 
 
 def load_brick_explosion(x, y):
@@ -711,7 +738,7 @@ def draw_explosion(whose):
                 e[4] += 1
             else:
                 e[5] += 1
-            if e[5] >= 15:
+            if e[5] >= 5:
                 exp_rem.append(e)
             if e[6]:
                 play_sound(GameArt.explosion_sound)
@@ -728,8 +755,11 @@ def draw_explosion(whose):
 
 
 def check_fuel():
-    if destroy_meter <= 0:
+    global dead, player_lives
+    if destroy_meter <= 0 and not dead:
         draw_explosion("player")
+        dead = True
+        player_lives -= 1
 
 
 def check_game_over():
@@ -742,14 +772,24 @@ def check_game_over():
 
 
 def clear_all():
-    global dead, counter, player_x, expl_no, destroy_meter, ast_list2, player_lives, score, paused
+    global dead, counter, player_x, expl_no, destroy_meter, ast_list2, player_lives, \
+        score, paused, player_y, invincible, bullets2
     counter = 0
-    player_x = w / 2
+    if loaded:
+        player_x = 40
+        player_y = h/2
+    else:
+        player_x = w/2
+        player_y = h-60
     expl_no = 0
-    dead = False
     destroy_meter = 100
     ast_list2 = []
     paused = False
+    if loaded:
+        invincible = True
+        pygame.time.set_timer(invc_event, invc_time)
+    dead = False
+    bullets2.clear()
 
 
 def reset(reason="life lose"):
@@ -789,12 +829,13 @@ def run_game():
     draw_player_health()
     draw_score()
     draw_timer()
-    draw_bullets()
     draw_explosion("player")
     draw_explosion("ast")
     draw_explosion("brick")
     check_game_over()
+    check_fuel()
     if not paused and not dead:
+        draw_bullets()
         if not loaded:
             movements()
             draw_asteroids()
@@ -802,6 +843,7 @@ def run_game():
             draw_destroy_meter()
         elif loaded:
             movements2()
+            draw_destroy_meter()
         load_bullets()
         calc_angle()
 
