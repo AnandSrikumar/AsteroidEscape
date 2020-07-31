@@ -3,12 +3,19 @@ import GameArt
 
 standard_wid = 170
 standard_hie = 60
-bricks = [[400, 200, 1, 0, False, 0, standard_wid, standard_hie],
-          [400, 400, 0, 0, False, 0, standard_wid, standard_hie],
-          [600, 400, 2, 1, False, 0, standard_wid, standard_hie]]
+bricks = [[400, 200, 1, 0, False, 0, standard_wid, standard_hie]]
 
 enemies = [[800, 300, 1, 1, True, 0, 50, 50, 10, 10]]
-objects = [[900, 300, 2, 0,  True, 0, 80, 50, 10, 10]]
+objects = [[485, 280, 2, 0,  True, 180, 80, 50, 10, 10]]
+
+
+def generate_builders():
+    global bricks, enemies, objects
+    y = 500
+    x = -1
+    while x < 6000:
+        bricks.append([x, y, 1, 0, False, 0, standard_wid, standard_hie])
+        x += standard_wid
 
 
 def load_elements(type):
@@ -33,10 +40,10 @@ def load_elements(type):
         if type == "bricks":
             elem_obj.append([obj, x[3], x[0], x[1]])
         elif type == "enemies":
-            elem_obj.append([obj, x[3], x[0], x[1], x[8], x[9], [-1, -1], 0, 0, False])
+            elem_obj.append([obj, x[3], x[0], x[1], x[8], x[9], [-1, -1], 0, 0, False, 15])
         elif type == "objects":
             elem_obj.append([obj, x[3], x[0], x[1], x[8], x[9]])
     return elem_obj
 
 
-#enemies [sprite object, shoots bullet, x, y, bullet_reload, wait till next bullet, movement bonds, dx, slope, did appear]
+#enemies [sprite object, shoots bullet, x, y, bullet_reload, wait till next bullet, movement bonds, dx, slope, did appear, their health]

@@ -102,6 +102,7 @@ def load_campaign():
     background_camp = SegmentClass.PlayerSegment(0, 0, GameArt.background2, wid=w, hie=h, tl=True)
     campaign = True
     loaded = True
+    LevelBuilder.generate_builders()
     bricks = LevelBuilder.load_elements("bricks")
     enemies = LevelBuilder.load_elements("enemies")
     level_objects = LevelBuilder.load_elements("objects")
@@ -134,7 +135,7 @@ def load_bullets():
     if can_fire and mouse_pressed:
         bull = SegmentClass.PlayerSegment(player_x, player_y, GameArt.bullet, angle1=angle
                                           , rotate=True, wid=30, hie=40)
-        bullets2.append([bull, slope, dx])
+        bullets2.append([bull, slope, dx, 0])
         pygame.time.set_timer(bullet_event, bullet_event_time)
         can_fire = False
         if can_play_sound:
@@ -265,7 +266,7 @@ def draw_bullets():
         bull[0].get_image()
         display_surface.blit(bull[0].image, bull[0].rect)
         collision_detection_bullet(bull[0].rect, bull)
-        if len(bull) > 3:
+        if bull[3] == 1:
             enem_bullet_collide(bull[0].rect, bull)
         y_speed = bull[1] * x_speed
         if bull[1] > 1:
@@ -540,6 +541,7 @@ def draw_enemies():
             e[0].x = e[2]
             e[0].y = e[3]
         enem_collide(e)
+        enem_collide_with_bull(e)
         move_enemy(e)
         if e[1] == 1:
             if e[4] == e[5]:
@@ -558,6 +560,20 @@ def enem_collide(enem):
         player_lives -= 1
         explosions.append([enem_rect[0], enem_rect[1], 160, 160, 0, 0, True])
         enemies.remove(enem)
+
+
+def enem_collide_with_bull(enem):
+    global bullets2, explosions
+    for b in bullets2:
+        if b[3] != 0:
+            continue
+        b_rect = b[0].rect
+        if b_rect.colliderect(enem[0].rect):
+            enem[10] -= 5
+            if enem[10] <= 0:
+                enemies.remove(enem)
+                explosions.append([enem[0].rect[0], enem[0].rect[1], 160, 160, 0, 0, True])
+            b[0].x = -2000
 
 
 def enem_bullet_collide(bull_rect, bull):
@@ -729,7 +745,7 @@ def draw_explosion(whose):
             reset()
         play_sound(GameArt.explosion_sound)
     exp_rem = []
-    if whose == "ast" and not loaded:
+    if whose == "ast":
         for e in explosions:
             ex = SegmentClass.PlayerSegment(e[0], e[1], GameArt.explosions[e[4]], wid=e[2], hie=e[3])
             ex.get_image()
@@ -809,6 +825,7 @@ def reset(reason="life lose"):
         other_gui = False
         loaded = False
         player_lives = 4
+        score = 0
 
 
 def game_init():
