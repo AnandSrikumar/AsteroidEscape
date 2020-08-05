@@ -32,4 +32,6 @@ bricks = [levelBuild+"spacebrick.jpg", levelBuild+"spacebrick2.jpg", levelBuild+
 objects = [levelBuild+"object1.jpg", levelBuild+"object2.jpg", levelBuild+"object3.jpg"]
 enemies = [enemies+"enemy"+str(x)+".png" for x in range(1, 5)]
 enem_bullet = 'GameArt/Sprites/Enemies/enemyBullet.png'
+enemy_path = 'GameArt/Sprites/Enemies/'
+random_enemies = [enemy_path+"random1.png", enemy_path+"random2.png", enemy_path+"random3.png", enemy_path+"random4.png"]
 

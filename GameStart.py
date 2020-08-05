@@ -81,6 +81,8 @@ brick_expl = []
 enem_speed = 10
 invincible = False
 invc_event, invc_time = pygame.USEREVENT+4, 3000
+can_enemy_come = True
+enemy_event, enemy_time = pygame.USEREVENT+5, 10000
 
 
 def loading_player():
@@ -130,6 +132,31 @@ def generate_random_x():
             pygame.time.set_timer(fuel_event, fuel_event_time)
 
 
+def generate_random_enemies():
+    global enemies, can_enemy_come
+    if can_enemy_come:
+        side = random.randrange(0, 4)
+        x, y = 0, 0
+        if side == 0:
+            x = -20
+            y = random.randrange(0, h)
+        elif side == 1:
+            y = -20
+            x = random.randrange(0, w)
+        elif side == 2:
+            x = w+20
+            y = random.randrange(0, h)
+        elif side == 3:
+            y = h+20
+            x = random.randrange(0, w)
+        spr = random.randrange(len(GameArt.random_enemies))
+        obj = SegmentClass.PlayerSegment(x, y, GameArt.random_enemies[spr], rotate=False, angle1=False,
+                                         wid=80, hie=80, tl=True)
+        enemies.append([obj, 0, x, y, 0, 0, [-1, -1], 0, 0, False, 15, side])
+        can_enemy_come = False
+        pygame.time.set_timer(enemy_event, enemy_time)
+
+
 def load_bullets():
     global can_fire, bullets, can_play_sound, bullets2
     if can_fire and mouse_pressed:
@@ -145,7 +172,7 @@ def load_bullets():
 
 
 def event_handling():
-    global ast_add, mouse_pressed, can_fire, paused, can_play_sound, fuel_send, invincible
+    global ast_add, mouse_pressed, can_fire, paused, can_play_sound, fuel_send, invincible, can_enemy_come
     for event in pygame.event.get():
         if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_ESCAPE:
@@ -179,6 +206,8 @@ def event_handling():
             fuel_send = True
         if event.type == invc_event:
             invincible = False
+        if event.type == enemy_event:
+            can_enemy_come = True
 
 
 def draw_background():
@@ -527,8 +556,7 @@ def draw_level_builders(num):
 def draw_enemies():
     global enemies
     for e in enemies:
-        if not check_bounds(e[0].rect):
-            pass
+
         ang_list = calculate_player_pos(e[0].x, e[0].y)
         angle = ang_list[0]
         e[0].angle1 = angle
@@ -570,7 +598,7 @@ def enem_collide_with_bull(enem):
         b_rect = b[0].rect
         if b_rect.colliderect(enem[0].rect):
             enem[10] -= 5
-            if enem[10] <= 0:
+            if enem in enemies and enem[10] <= 0:
                 enemies.remove(enem)
                 explosions.append([enem[0].rect[0], enem[0].rect[1], 160, 160, 0, 0, True])
             b[0].x = -2000
@@ -809,7 +837,7 @@ def clear_all():
 
 
 def reset(reason="life lose"):
-    global game_start, player_lives, score, gui_no, other_gui, loaded
+    global game_start, player_lives, score, gui_no, other_gui, loaded, stage_x, stage_y
     if reason == "life lose" and player_lives > 0:
         clear_all()
 
@@ -817,6 +845,9 @@ def reset(reason="life lose"):
         clear_all()
         player_lives = 4
         score = 0
+        if loaded:
+            stage_x = 0
+            stage_y = 0
 
     if reason == "reset menu":
         clear_all()
@@ -861,6 +892,7 @@ def run_game():
         elif loaded:
             movements2()
             draw_destroy_meter()
+            generate_random_enemies()
         load_bullets()
         calc_angle()
 
