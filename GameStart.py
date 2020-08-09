@@ -66,7 +66,7 @@ campaign = False
 loaded = False
 stage_x, stage_y = 0, 0
 level = 0
-stage_limits = {0: [15000, 6000]}
+stage_limits = {0: [15000, 3000]}
 background_camp = GameArt.background2
 game_over = False
 resetting = False
@@ -82,6 +82,7 @@ enem_speed = 10
 invincible = False
 invc_event, invc_time = pygame.USEREVENT+4, 3000
 can_enemy_come = True
+first_time = True
 enemy_event, enemy_time = pygame.USEREVENT+5, 10000
 
 
@@ -133,8 +134,8 @@ def generate_random_x():
 
 
 def generate_random_enemies():
-    global enemies, can_enemy_come
-    if can_enemy_come:
+    global enemies, can_enemy_come, first_time
+    if can_enemy_come and not first_time:
         side = random.randrange(0, 4)
         x, y = 0, 0
         if side == 0:
@@ -152,9 +153,14 @@ def generate_random_enemies():
         spr = random.randrange(len(GameArt.random_enemies))
         obj = SegmentClass.PlayerSegment(x, y, GameArt.random_enemies[spr], rotate=False, angle1=False,
                                          wid=80, hie=80, tl=True)
-        enemies.append([obj, 0, x, y, 0, 0, [-1, -1], 0, 0, False, 15, side])
+        enemies.append([obj, 0, x, y, 0, 0, [-1, -1], 0, 0, False, 15, side, 15])
         can_enemy_come = False
         pygame.time.set_timer(enemy_event, enemy_time)
+        
+    elif first_time and can_enemy_come:
+        can_enemy_come = False
+        pygame.time.set_timer(enemy_event, enemy_time)
+        first_time = False
 
 
 def load_bullets():
@@ -527,6 +533,7 @@ def check_bounds(rect):
 
 def draw_level_builders(num):
     global bricks, level_objects
+    rem = []
     elems = []
     if num == 0:
         elems = bricks
@@ -547,10 +554,18 @@ def draw_level_builders(num):
                     x[4] = 0
                 else:
                     x[4] += 1
-
-        level_collide((x[0].x, x[0].y, x[0].width, x[0].height), x[0])
+        if len(x) == 7:
+            if x[6] == 1:
+                level_collide((x[0].x, x[0].y, x[0].width, x[0].height), x[0])
+            else:
+                x[0].x = -2000
+                rem.append(x)
+        else:
+            level_collide((x[0].x, x[0].y, x[0].width, x[0].height), x[0])
         if num != 1:
             bullet_level_collide((x[0].x, x[0].y, x[0].width, x[0].height), x[1], x)
+    for r in rem:
+        level_objects.remove(r)
 
 
 def draw_enemies():
@@ -591,7 +606,7 @@ def enem_collide(enem):
 
 
 def enem_collide_with_bull(enem):
-    global bullets2, explosions
+    global bullets2, explosions, score
     for b in bullets2:
         if b[3] != 0:
             continue
@@ -601,11 +616,15 @@ def enem_collide_with_bull(enem):
             if enem in enemies and enem[10] <= 0:
                 enemies.remove(enem)
                 explosions.append([enem[0].rect[0], enem[0].rect[1], 160, 160, 0, 0, True])
+                if len(enem) == 12:
+                    score += enem[11]
+                elif len(enem) == 13:
+                    score += enem[12]
             b[0].x = -2000
 
 
 def enem_bullet_collide(bull_rect, bull):
-    global destroy_meter
+    global destroy_meter, score
     player_rect = pygame.Rect(player_x-player_w/2, player_y-player_h/2, player_w, player_h )
     if bull_rect.colliderect(player_rect) and not invincible:
         destroy_meter -= 10
@@ -684,7 +703,7 @@ def level_collide(obj_rect, locks):
         locker = locks
         if rect1[0] < rect2[0]:
             mv_right = False
-        if rect1[0] > rect2[0]+rect2[2]*0.85:
+        if rect1[0] > rect2[0]+rect2[2]*0.60:
             mv_left = False
 
         if rect1[1] > rect2[1] + rect2[3]*0.50:
@@ -837,7 +856,7 @@ def clear_all():
 
 
 def reset(reason="life lose"):
-    global game_start, player_lives, score, gui_no, other_gui, loaded, stage_x, stage_y
+    global game_start, player_lives, score, gui_no, other_gui, loaded, stage_x, stage_y, first_time
     if reason == "life lose" and player_lives > 0:
         clear_all()
 
@@ -848,6 +867,8 @@ def reset(reason="life lose"):
         if loaded:
             stage_x = 0
             stage_y = 0
+            load_campaign()
+            first_time = True
 
     if reason == "reset menu":
         clear_all()

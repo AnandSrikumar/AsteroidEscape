@@ -2,12 +2,10 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="36545d60-4818-40c9-8627-e2a59c3383dd" name="Default Changelist" comment="">
-      <change afterPath="$PROJECT_DIR$/GameArt/Sprites/Enemies/random1.png" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/GameArt/Sprites/Enemies/random2.png" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/GameArt/Sprites/Enemies/random3.png" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/GameArt/Sprites/Enemies/random4.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/GameArt/Sprites/collects/bold_silver.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/GameArt/Sprites/collects/powerupGreen_star.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/GameArt/Sprites/collects/shield_silver.png" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/GameArt.py" beforeDir="false" afterPath="$PROJECT_DIR$/GameArt.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/GameStart.py" beforeDir="false" afterPath="$PROJECT_DIR$/GameStart.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/LevelBuilder.py" beforeDir="false" afterPath="$PROJECT_DIR$/LevelBuilder.py" afterDir="false" />
     </list>
@@ -35,16 +33,16 @@
   <component name="PropertiesComponent">
     <property name="RunOnceActivity.ShowReadmeOnStart" value="true" />
     <property name="SHARE_PROJECT_CONFIGURATION_FILES" value="true" />
-    <property name="last_opened_file_path" value="$PROJECT_DIR$/GameArt/Sprites/Enemies" />
+    <property name="last_opened_file_path" value="$PROJECT_DIR$/GameArt/Sprites/collects" />
     <property name="settings.editor.selected.configurable" value="com.jetbrains.python.configuration.PyActiveSdkModuleConfigurable" />
   </component>
   <component name="RecentsManager">
     <key name="CopyFile.RECENT_KEYS">
+      <recent name="$PROJECT_DIR$/GameArt/Sprites/collects" />
       <recent name="$PROJECT_DIR$/GameArt/Sprites/Enemies" />
       <recent name="$PROJECT_DIR$/GameArt/Music" />
       <recent name="$PROJECT_DIR$/GameArt/Sprites/Explotion" />
       <recent name="$PROJECT_DIR$/GameArt/Sprites/levelBuilder" />
-      <recent name="$PROJECT_DIR$/GameArt/Sprites" />
     </key>
   </component>
   <component name="RunManager" selected="Python.GameStart">
@@ -137,29 +135,29 @@
       <screen x="0" y="0" width="1366" height="742" />
     </state>
     <state x="141" y="30" key="#com.intellij.execution.impl.EditConfigurationsDialog/0.0.1366.742@0.0.1366.742" timestamp="1596188017015" />
-    <state width="1343" height="177" key="GridCell.Tab.0.bottom" timestamp="1596640186956">
+    <state width="1343" height="177" key="GridCell.Tab.0.bottom" timestamp="1596887279305">
       <screen x="0" y="0" width="1366" height="742" />
     </state>
-    <state width="1343" height="177" key="GridCell.Tab.0.bottom/0.0.1366.742@0.0.1366.742" timestamp="1596640186956" />
-    <state width="1343" height="177" key="GridCell.Tab.0.center" timestamp="1596640186956">
+    <state width="1343" height="177" key="GridCell.Tab.0.bottom/0.0.1366.742@0.0.1366.742" timestamp="1596887279305" />
+    <state width="1343" height="177" key="GridCell.Tab.0.center" timestamp="1596887279304">
       <screen x="0" y="0" width="1366" height="742" />
     </state>
-    <state width="1343" height="177" key="GridCell.Tab.0.center/0.0.1366.742@0.0.1366.742" timestamp="1596640186956" />
-    <state width="1343" height="177" key="GridCell.Tab.0.left" timestamp="1596640186956">
+    <state width="1343" height="177" key="GridCell.Tab.0.center/0.0.1366.742@0.0.1366.742" timestamp="1596887279304" />
+    <state width="1343" height="177" key="GridCell.Tab.0.left" timestamp="1596887279304">
       <screen x="0" y="0" width="1366" height="742" />
     </state>
-    <state width="1343" height="177" key="GridCell.Tab.0.left/0.0.1366.742@0.0.1366.742" timestamp="1596640186956" />
-    <state width="1343" height="177" key="GridCell.Tab.0.right" timestamp="1596640186956">
+    <state width="1343" height="177" key="GridCell.Tab.0.left/0.0.1366.742@0.0.1366.742" timestamp="1596887279304" />
+    <state width="1343" height="177" key="GridCell.Tab.0.right" timestamp="1596887279305">
       <screen x="0" y="0" width="1366" height="742" />
     </state>
-    <state width="1343" height="177" key="GridCell.Tab.0.right/0.0.1366.742@0.0.1366.742" timestamp="1596640186956" />
+    <state width="1343" height="177" key="GridCell.Tab.0.right/0.0.1366.742@0.0.1366.742" timestamp="1596887279305" />
     <state x="172" y="7" key="SettingsEditor" timestamp="1594993161996">
       <screen x="0" y="0" width="1366" height="742" />
     </state>
     <state x="172" y="7" key="SettingsEditor/0.0.1366.742@0.0.1366.742" timestamp="1594993161996" />
-    <state x="339" y="199" key="com.intellij.ide.util.TipDialog" timestamp="1596634923414">
+    <state x="339" y="199" key="com.intellij.ide.util.TipDialog" timestamp="1596885923498">
       <screen x="0" y="0" width="1366" height="742" />
     </state>
-    <state x="339" y="199" key="com.intellij.ide.util.TipDialog/0.0.1366.742@0.0.1366.742" timestamp="1596634923414" />
+    <state x="339" y="199" key="com.intellij.ide.util.TipDialog/0.0.1366.742@0.0.1366.742" timestamp="1596885923498" />
   </component>
 </project>
