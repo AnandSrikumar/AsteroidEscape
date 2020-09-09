@@ -1,11 +1,30 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
+  <component name="BranchesTreeState">
+    <expand>
+      <path>
+        <item name="ROOT" type="e8cecc67:BranchNodeDescriptor" />
+        <item name="LOCAL_ROOT" type="e8cecc67:BranchNodeDescriptor" />
+      </path>
+      <path>
+        <item name="ROOT" type="e8cecc67:BranchNodeDescriptor" />
+        <item name="REMOTE_ROOT" type="e8cecc67:BranchNodeDescriptor" />
+      </path>
+      <path>
+        <item name="ROOT" type="e8cecc67:BranchNodeDescriptor" />
+        <item name="REMOTE_ROOT" type="e8cecc67:BranchNodeDescriptor" />
+        <item name="GROUP_NODE:origin" type="e8cecc67:BranchNodeDescriptor" />
+      </path>
+    </expand>
+    <select />
+  </component>
   <component name="ChangeListManager">
     <list default="true" id="36545d60-4818-40c9-8627-e2a59c3383dd" name="Default Changelist" comment="">
-      <change afterPath="$PROJECT_DIR$/GameArt/Sprites/collects/bold_silver.png" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/GameArt/Sprites/collects/powerupGreen_star.png" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/GameArt/Sprites/collects/shield_silver.png" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/GameArt.py" beforeDir="false" afterPath="$PROJECT_DIR$/GameArt.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/GameArt/Sprites/collects/bold_silver.png" beforeDir="false" afterPath="$PROJECT_DIR$/GameArt/Sprites/levelBuilder/bold_silver.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/GameArt/Sprites/collects/powerupGreen_star.png" beforeDir="false" afterPath="$PROJECT_DIR$/GameArt/Sprites/levelBuilder/score.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/GameArt/Sprites/collects/shield_silver.png" beforeDir="false" afterPath="$PROJECT_DIR$/GameArt/Sprites/levelBuilder/shield_silver.png" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/GameStart.py" beforeDir="false" afterPath="$PROJECT_DIR$/GameStart.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/LevelBuilder.py" beforeDir="false" afterPath="$PROJECT_DIR$/LevelBuilder.py" afterDir="false" />
     </list>
@@ -27,16 +46,19 @@
   <component name="ProjectId" id="1egBfjQY0HmG5SA9vBpxvUFu2bd" />
   <component name="ProjectViewState">
     <option name="hideEmptyMiddlePackages" value="true" />
-    <option name="showExcludedFiles" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
   <component name="PropertiesComponent">
+    <property name="RunOnceActivity.OpenProjectViewOnStart" value="true" />
     <property name="RunOnceActivity.ShowReadmeOnStart" value="true" />
     <property name="SHARE_PROJECT_CONFIGURATION_FILES" value="true" />
     <property name="last_opened_file_path" value="$PROJECT_DIR$/GameArt/Sprites/collects" />
     <property name="settings.editor.selected.configurable" value="com.jetbrains.python.configuration.PyActiveSdkModuleConfigurable" />
   </component>
   <component name="RecentsManager">
+    <key name="MoveFile.RECENT_KEYS">
+      <recent name="$PROJECT_DIR$/GameArt/Sprites/levelBuilder" />
+    </key>
     <key name="CopyFile.RECENT_KEYS">
       <recent name="$PROJECT_DIR$/GameArt/Sprites/collects" />
       <recent name="$PROJECT_DIR$/GameArt/Sprites/Enemies" />
@@ -117,6 +139,7 @@
       </list>
     </recent_temporary>
   </component>
+  <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
   <component name="SvnConfiguration">
     <configuration />
   </component>
@@ -130,31 +153,48 @@
     </task>
     <servers />
   </component>
+  <component name="Vcs.Log.Tabs.Properties">
+    <option name="TAB_STATES">
+      <map>
+        <entry key="MAIN">
+          <value>
+            <State />
+          </value>
+        </entry>
+      </map>
+    </option>
+    <option name="oldMeFiltersMigrated" value="true" />
+  </component>
   <component name="WindowStateProjectService">
     <state x="141" y="30" key="#com.intellij.execution.impl.EditConfigurationsDialog" timestamp="1596188017015">
       <screen x="0" y="0" width="1366" height="742" />
     </state>
     <state x="141" y="30" key="#com.intellij.execution.impl.EditConfigurationsDialog/0.0.1366.742@0.0.1366.742" timestamp="1596188017015" />
-    <state width="1343" height="177" key="GridCell.Tab.0.bottom" timestamp="1596887279305">
-      <screen x="0" y="0" width="1366" height="742" />
+    <state width="1343" height="173" key="GridCell.Tab.0.bottom" timestamp="1599662399358">
+      <screen x="0" y="30" width="1366" height="738" />
     </state>
     <state width="1343" height="177" key="GridCell.Tab.0.bottom/0.0.1366.742@0.0.1366.742" timestamp="1596887279305" />
-    <state width="1343" height="177" key="GridCell.Tab.0.center" timestamp="1596887279304">
-      <screen x="0" y="0" width="1366" height="742" />
+    <state width="1343" height="173" key="GridCell.Tab.0.bottom/0.30.1366.738@0.30.1366.738" timestamp="1599662399358" />
+    <state width="1343" height="173" key="GridCell.Tab.0.center" timestamp="1599662399358">
+      <screen x="0" y="30" width="1366" height="738" />
     </state>
     <state width="1343" height="177" key="GridCell.Tab.0.center/0.0.1366.742@0.0.1366.742" timestamp="1596887279304" />
-    <state width="1343" height="177" key="GridCell.Tab.0.left" timestamp="1596887279304">
-      <screen x="0" y="0" width="1366" height="742" />
+    <state width="1343" height="173" key="GridCell.Tab.0.center/0.30.1366.738@0.30.1366.738" timestamp="1599662399358" />
+    <state width="1343" height="173" key="GridCell.Tab.0.left" timestamp="1599662399357">
+      <screen x="0" y="30" width="1366" height="738" />
     </state>
     <state width="1343" height="177" key="GridCell.Tab.0.left/0.0.1366.742@0.0.1366.742" timestamp="1596887279304" />
-    <state width="1343" height="177" key="GridCell.Tab.0.right" timestamp="1596887279305">
-      <screen x="0" y="0" width="1366" height="742" />
+    <state width="1343" height="173" key="GridCell.Tab.0.left/0.30.1366.738@0.30.1366.738" timestamp="1599662399357" />
+    <state width="1343" height="173" key="GridCell.Tab.0.right" timestamp="1599662399358">
+      <screen x="0" y="30" width="1366" height="738" />
     </state>
     <state width="1343" height="177" key="GridCell.Tab.0.right/0.0.1366.742@0.0.1366.742" timestamp="1596887279305" />
-    <state x="172" y="7" key="SettingsEditor" timestamp="1594993161996">
-      <screen x="0" y="0" width="1366" height="742" />
+    <state width="1343" height="173" key="GridCell.Tab.0.right/0.30.1366.738@0.30.1366.738" timestamp="1599662399358" />
+    <state x="172" y="35" width="992" height="733" key="SettingsEditor" timestamp="1597240674474">
+      <screen x="0" y="30" width="1366" height="738" />
     </state>
     <state x="172" y="7" key="SettingsEditor/0.0.1366.742@0.0.1366.742" timestamp="1594993161996" />
+    <state x="172" y="35" width="992" height="733" key="SettingsEditor/0.30.1366.738@0.30.1366.738" timestamp="1597240674474" />
     <state x="339" y="199" key="com.intellij.ide.util.TipDialog" timestamp="1596885923498">
       <screen x="0" y="0" width="1366" height="742" />
     </state>

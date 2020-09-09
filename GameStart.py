@@ -66,7 +66,7 @@ campaign = False
 loaded = False
 stage_x, stage_y = 0, 0
 level = 0
-stage_limits = {0: [15000, 3000]}
+stage_limits = {0: [15000, 0]}
 background_camp = GameArt.background2
 game_over = False
 resetting = False
@@ -84,28 +84,29 @@ invc_event, invc_time = pygame.USEREVENT+4, 3000
 can_enemy_come = True
 first_time = True
 enemy_event, enemy_time = pygame.USEREVENT+5, 10000
+p_w, p_h = 70, 70
 
 
 def loading_player():
     global player_objects
     for sprite in player_sprites:
         obj = SegmentClass.PlayerSegment(player_x, player_y, sprite, tl=False,
-                                      angle1=angle, rotate=True, wid=70, hie=70)
+                                      angle1=angle, rotate=True, wid=p_w, hie=p_h)
         player_objects.append(obj)
 
 
-loading_player()
-
-
 def load_campaign():
-    global player_x, player_y, background_camp, campaign, loaded, bricks, enemies, level_objects
+    global player_x, player_y, background_camp, campaign, loaded, bricks, enemies, level_objects, p_w, p_h, player_objects
     player_x = 40
     player_y = h/2
+    p_w = 50
+    p_h = 50
+    player_objects.clear()
     loading_player()
     background_camp = SegmentClass.PlayerSegment(0, 0, GameArt.background2, wid=w, hie=h, tl=True)
     campaign = True
     loaded = True
-    LevelBuilder.generate_builders()
+    LevelBuilder.generate_builders(w, h, stage_limits[level][0], level)
     bricks = LevelBuilder.load_elements("bricks")
     enemies = LevelBuilder.load_elements("enemies")
     level_objects = LevelBuilder.load_elements("objects")
@@ -152,7 +153,7 @@ def generate_random_enemies():
             x = random.randrange(0, w)
         spr = random.randrange(len(GameArt.random_enemies))
         obj = SegmentClass.PlayerSegment(x, y, GameArt.random_enemies[spr], rotate=False, angle1=False,
-                                         wid=80, hie=80, tl=True)
+                                         wid=60, hie=60, tl=True)
         enemies.append([obj, 0, x, y, 0, 0, [-1, -1], 0, 0, False, 15, side, 15])
         can_enemy_come = False
         pygame.time.set_timer(enemy_event, enemy_time)
@@ -234,14 +235,14 @@ def draw_background2():
     global stage_x, stage_y
     background_camp.get_image()
     display_surface.blit(background_camp.image, background_camp.rect)
-    if right and not end_check("right") and player_x >= w/2 and mv_right:
+    if right and not end_check("right") and player_x >= w/2 and mv_right and not paused:
         if shift:
             stage_x -= mv_speed*1.5
             background_camp.x -= mv_speed*1.5
         else:
             stage_x -= mv_speed
             background_camp.x -= mv_speed
-    if left and not end_check("left") and player_x <= w/2-5 and mv_left:
+    if left and not end_check("left") and player_x <= w/2-5 and mv_left and not paused:
         if shift:
             stage_x += mv_speed*1.5
             background_camp.x += mv_speed*1.5
@@ -249,7 +250,7 @@ def draw_background2():
             stage_x += mv_speed
             background_camp.x += mv_speed
 
-    if up and not end_check("up") and player_y < h/2 and mv_up:
+    if up and not end_check("up") and player_y < h/2 and mv_up and not paused:
         if shift:
             stage_y += mv_speed*1.5
             background_camp.y += mv_speed*1.5
@@ -257,7 +258,7 @@ def draw_background2():
             stage_y += mv_speed
             background_camp.y += mv_speed
 
-    if down and not end_check("down") and player_y >= h/2 and mv_down:
+    if down and not end_check("down") and player_y >= h/2 and mv_down and not paused:
         if shift:
             stage_y -= mv_speed*1.5
             background_camp.y -= mv_speed*1.5
@@ -554,18 +555,16 @@ def draw_level_builders(num):
                     x[4] = 0
                 else:
                     x[4] += 1
-        if len(x) == 7:
-            if x[6] == 1:
-                level_collide((x[0].x, x[0].y, x[0].width, x[0].height), x[0])
-            else:
-                x[0].x = -2000
-                rem.append(x)
+        if len(x) >= 7:
+            level_collide((x[0].x, x[0].y, x[0].width, x[0].height), x[0], x[6], x[7])
         else:
             level_collide((x[0].x, x[0].y, x[0].width, x[0].height), x[0])
         if num != 1:
             bullet_level_collide((x[0].x, x[0].y, x[0].width, x[0].height), x[1], x)
+        if x[0].wid <= -10:
+            rem.append(x)
     for r in rem:
-        level_objects.remove(r)
+        elems.remove(r)
 
 
 def draw_enemies():
@@ -641,7 +640,7 @@ def move_enemy(e):
         dy = e[3] - player_y
         if e[7] != 0:
             e[8] = dy / e[7]
-    else:
+    elif not paused:
         x_speed = enem_speed
         y_speed = e[8] * enem_speed
         if e[8] > 1:
@@ -693,13 +692,18 @@ def bullet_level_collide(obj_rect, brick_type, brick):
             bull[0].x = -2000
 
 
-def level_collide(obj_rect, locks):
-    global right, collided, locker, mv_right, mv_left, mv_down, mv_up
+def level_collide(obj_rect, locks, collects=-1, points=0):
+    global right, collided, locker, mv_right, mv_left, mv_down, mv_up, score
     rect1 = pygame.Rect(player_x-player_w/2, player_y-player_h/2, player_w*0.8, player_h*0.8)
     rect2 = pygame.Rect(obj_rect)
     #pygame.draw.rect(display_surface, WHITE, rect2, 5)
     #pygame.draw.rect(display_surface, WHITE, rect1, 5)
     if rect2.colliderect(rect1):
+        if collects == 0:
+            locks.wid = -2000
+            locks.hie = -2000
+            score += points
+            return
         locker = locks
         if rect1[0] < rect2[0]:
             mv_right = False
@@ -871,13 +875,13 @@ def reset(reason="life lose"):
             first_time = True
 
     if reason == "reset menu":
-        clear_all()
         game_start = False
         gui_no = 0
         other_gui = False
         loaded = False
         player_lives = 4
         score = 0
+        clear_all()
 
 
 def game_init():
@@ -978,6 +982,7 @@ def gui_loader():
             rect2 = pygame.Rect(x_-90, y_+140, 180, 45)
             if rect1.collidepoint(mous_pos) and mouse_pressed:
                 game_start = True
+                loading_player()
             if rect2.collidepoint(mous_pos) and mouse_pressed:
                 if not loaded:
                     load_campaign()
