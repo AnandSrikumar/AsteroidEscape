@@ -85,6 +85,13 @@ can_enemy_come = True
 first_time = True
 enemy_event, enemy_time = pygame.USEREVENT+5, 10000
 p_w, p_h = 70, 70
+max_health = 100
+key_collected = False
+meter_limit = 100
+f_pressed = False
+game_events = []
+scroll_r, scroll_l, scroll_u, scroll_d = True, True, True, True
+level_complete = False
 
 
 def loading_player():
@@ -97,10 +104,12 @@ def loading_player():
 
 def load_campaign():
     global player_x, player_y, background_camp, campaign, loaded, bricks, enemies, level_objects, p_w, p_h, player_objects
+    global player_lives, game_events
     player_x = 40
     player_y = h/2
     p_w = 50
     p_h = 50
+    player_lives = 30
     player_objects.clear()
     loading_player()
     background_camp = SegmentClass.PlayerSegment(0, 0, GameArt.background2, wid=w, hie=h, tl=True)
@@ -110,13 +119,14 @@ def load_campaign():
     bricks = LevelBuilder.load_elements("bricks")
     enemies = LevelBuilder.load_elements("enemies")
     level_objects = LevelBuilder.load_elements("objects")
+    game_events = LevelBuilder.event_trigger
 
 
 def generate_random_x():
     global ast_add, fuel_send
     if ast_add and cpu_limit():
         x = random.randrange(0, w-100)
-        sp = random.randrange(0, 4)
+        sp = random.randrange(0, len(GameArt.asteroids))
         mv = random.randrange(-5, 5)
 
         ast_seg = SegmentClass.PlayerSegment(x, -400, GameArt.asteroids[sp], wid=ast_w, hie=ast_h, tl=True,
@@ -154,7 +164,7 @@ def generate_random_enemies():
         spr = random.randrange(len(GameArt.random_enemies))
         obj = SegmentClass.PlayerSegment(x, y, GameArt.random_enemies[spr], rotate=False, angle1=False,
                                          wid=60, hie=60, tl=True)
-        enemies.append([obj, 0, x, y, 0, 0, [-1, -1], 0, 0, False, 15, side, 15])
+        enemies.append([obj, 0, x, y, 0, 0, [-1, -1], 0, 0, False, 15, side, 15, 1])
         can_enemy_come = False
         pygame.time.set_timer(enemy_event, enemy_time)
         
@@ -235,14 +245,14 @@ def draw_background2():
     global stage_x, stage_y
     background_camp.get_image()
     display_surface.blit(background_camp.image, background_camp.rect)
-    if right and not end_check("right") and player_x >= w/2 and mv_right and not paused:
+    if right and not end_check("right") and player_x >= w/2 and mv_right and not paused and scroll_r:
         if shift:
             stage_x -= mv_speed*1.5
             background_camp.x -= mv_speed*1.5
         else:
             stage_x -= mv_speed
             background_camp.x -= mv_speed
-    if left and not end_check("left") and player_x <= w/2-5 and mv_left and not paused:
+    if left and not end_check("left") and player_x <= w/2-5 and mv_left and not paused and scroll_l:
         if shift:
             stage_x += mv_speed*1.5
             background_camp.x += mv_speed*1.5
@@ -327,7 +337,7 @@ def draw_bullets():
 
 
 def key_press_handle(key):
-    global right, left, shift, other_gui, up, down
+    global right, left, shift, other_gui, up, down, f_pressed
     if key[pygame.K_d] or key[pygame.K_RIGHT]:
         right = True
         left = False
@@ -352,12 +362,15 @@ def key_press_handle(key):
     if key[pygame.K_y] and game_over:
         reset("reset mode")
 
-    if key[pygame.K_n] and (game_over or paused):
+    if key[pygame.K_n] and (game_over or paused or level_complete):
         reset("reset menu")
+
+    if key[pygame.K_f]:
+        f_pressed = True
 
 
 def key_release_handle(key):
-    global right, left, shift, up, down
+    global right, left, shift, up, down, f_pressed
     if not key[pygame.K_d] and not key[pygame.K_RIGHT]:
         right = False
 
@@ -370,6 +383,8 @@ def key_release_handle(key):
         up = False
     if not key[pygame.K_s] and not key[pygame.K_DOWN]:
         down = False
+    if not key[pygame.K_f]:
+        f_pressed = False
 
 
 def draw_player_health():
@@ -379,14 +394,18 @@ def draw_player_health():
 
 def draw_destroy_meter():
     global destroy_meter
-    pygame.draw.rect(display_surface, WHITE, (w-130, h-30, 100, 10), 5)
-    pygame.draw.rect(display_surface, RED, (w - 130, h - 30, destroy_meter, 10))
+    pygame.draw.rect(display_surface, WHITE, (w-meter_limit-10, h-20, meter_limit, 10), 5)
+    pygame.draw.rect(display_surface, RED, (w - meter_limit-10, h-20, destroy_meter, 10))
     if not loaded:
         destroy_meter -= 0.05
 
 
 def draw_score():
     write_text(score, x=w/2, y=25, size=18)
+    if key_collected and campaign:
+        write_text("KEY COLLECTED", x=w/2-65, y=45, size=12)
+    elif not key_collected and campaign:
+        write_text("KEY Not COLLECTED", x=w/2-65, y=45, size=12)
 
 
 def draw_timer():
@@ -429,13 +448,17 @@ def movements():
 
 def end_check(side):
     if side == "right":
-        return -(stage_x - w/2) >= stage_limits[level][0]
+        if not scroll_r:
+            return True
+        return -(stage_x - w / 2) >= stage_limits[level][0]
     if side == "left":
+        if not scroll_l:
+            return True
         return stage_x > 0
     if side == "up":
         return stage_y > 0
     if side == "down":
-        return -(stage_y - h/2) >= stage_limits[level][1]
+        return -(stage_y - h / 2) >= stage_limits[level][1]
 
 
 def mv(side):
@@ -551,14 +574,14 @@ def draw_level_builders(num):
         if num == 1:
             if x[1] == 0:
                 if x[4] == x[5]:
-                    load_enem_bullets(angs[1], angs[2], angs[0])
+                    load_enem_bullets(angs[1], angs[2], angs[0], x[8], x[9])
                     x[4] = 0
                 else:
                     x[4] += 1
         if len(x) >= 7:
-            level_collide((x[0].x, x[0].y, x[0].width, x[0].height), x[0], x[6], x[7])
+            level_collide((x[0].x, x[0].y, x[0].width, x[0].height), x[0], x[6], x[7], x[1])
         else:
-            level_collide((x[0].x, x[0].y, x[0].width, x[0].height), x[0])
+            level_collide((x[0].x, x[0].y, x[0].width, x[0].height), x[0], is_key=x[1])
         if num != 1:
             bullet_level_collide((x[0].x, x[0].y, x[0].width, x[0].height), x[1], x)
         if x[0].wid <= -10:
@@ -584,10 +607,14 @@ def draw_enemies():
             e[0].y = e[3]
         enem_collide(e)
         enem_collide_with_bull(e)
-        move_enemy(e)
+        if len(e) == 14:
+            move_enemy(e)
+        if len(e) == 16:
+            if e[12] == 1:
+                move_enemy(e)
         if e[1] == 1:
             if e[4] == e[5]:
-                load_enem_bullets(ang_list[1], ang_list[2], angle)
+                load_enem_bullets(ang_list[1], ang_list[2], angle, e[13], e[14], e[15][0], e[15][1])
                 e[4] = 0
             else:
                 e[4] += 1
@@ -615,9 +642,9 @@ def enem_collide_with_bull(enem):
             if enem in enemies and enem[10] <= 0:
                 enemies.remove(enem)
                 explosions.append([enem[0].rect[0], enem[0].rect[1], 160, 160, 0, 0, True])
-                if len(enem) == 12:
+                if len(enem) == 16:
                     score += enem[11]
-                elif len(enem) == 13:
+                elif len(enem) == 14:
                     score += enem[12]
             b[0].x = -2000
 
@@ -626,12 +653,16 @@ def enem_bullet_collide(bull_rect, bull):
     global destroy_meter, score
     player_rect = pygame.Rect(player_x-player_w/2, player_y-player_h/2, player_w, player_h )
     if bull_rect.colliderect(player_rect) and not invincible:
-        destroy_meter -= 10
+        destroy_meter -= bull[4]
         bull[0].x = -2000
 
 
 def move_enemy(e):
     global dead
+    if e[0].x + stage_x < w:
+        e[9] = True
+    if not e[9]:
+        return
     e[9] = True
     if e[6][0] == -1:
         e[6][0] = player_x
@@ -664,15 +695,15 @@ def move_enemy(e):
             e[6][1] = -1
 
 
-def load_enem_bullets(x, y, a1):
+def load_enem_bullets(x, y, a1, bull_n=0, health_gone=10, b_w=10, b_h=20):
     global bullets2
-    br = SegmentClass.PlayerSegment(x, y, GameArt.enem_bullet, angle1=a1, rotate=True, wid=10, hie=20)
+    br = SegmentClass.PlayerSegment(x, y, GameArt.enem_bullet[bull_n], angle1=a1, rotate=True, wid=b_w, hie=b_h)
     dx = player_x - x
     dy = player_y - y
     slope = 0
     if dx != 0:
         slope = dy/dx
-    bullets2.append([br, slope, dx, 1])
+    bullets2.append([br, slope, dx, 1, health_gone])
 
 
 def load_brick_explosion(x, y):
@@ -692,8 +723,9 @@ def bullet_level_collide(obj_rect, brick_type, brick):
             bull[0].x = -2000
 
 
-def level_collide(obj_rect, locks, collects=-1, points=0):
-    global right, collided, locker, mv_right, mv_left, mv_down, mv_up, score
+def level_collide(obj_rect, locks, collects=-1, points=0, is_key=-1):
+    global right, collided, locker, mv_right, mv_left, mv_down, mv_up, score, destroy_meter, key_collected
+    global meter_limit
     rect1 = pygame.Rect(player_x-player_w/2, player_y-player_h/2, player_w*0.8, player_h*0.8)
     rect2 = pygame.Rect(obj_rect)
     #pygame.draw.rect(display_surface, WHITE, rect2, 5)
@@ -702,8 +734,29 @@ def level_collide(obj_rect, locks, collects=-1, points=0):
         if collects == 0:
             locks.wid = -2000
             locks.hie = -2000
-            score += points
+            play_sound(GameArt.coin_collect)
+            if points > 0:
+                score += points
+            else:
+                destroy_meter += -points
+                if destroy_meter > max_health:
+                    destroy_meter = max_health
+            if is_key == 2:
+                key_collected = True
+
+            if is_key == 4:
+                meter_limit = 150
+                destroy_meter = meter_limit
+            if is_key == 5:
+                reset("level_complete")
             return
+        elif collects != 0:
+            if is_key == 2:
+                if key_collected:
+                    locks.x = -100
+                else:
+                    write_text("Collect the key and come back", x=w/2, y=h/2, size=12)
+
         locker = locks
         if rect1[0] < rect2[0]:
             mv_right = False
@@ -722,6 +775,15 @@ def level_collide(obj_rect, locks, collects=-1, points=0):
 
     elif locker is None:
         mv_right, mv_left, mv_up, mv_down = True, True, True, True
+
+
+def make_events():
+    global game_events, scroll_d, scroll_u, scroll_r, scroll_l
+    for ev in game_events:
+        if ev[2] == 0:
+            if ev[3] == 0:
+                if -stage_x > ev[0]:
+                    scroll_l = False
 
 
 def write_text(text, x=w/2, y=h-150, font_name=GameArt.fonts[0], size=14, color=(255, 255, 255)):
@@ -754,8 +816,8 @@ def collision_detection(ast_rect, index=0, rem=0):
         if (ast_rect[0]+ast_rect[2] >= player_rect[0] + player_rect[2]/2)\
                 and (ast_rect[0] <= player_rect[0] + player_rect[2]*0.75):
             if index == 1:
-                if destroy_meter + 15 > 100:
-                    destroy_meter = 100
+                if destroy_meter + 15 > meter_limit:
+                    destroy_meter = meter_limit
                 else:
                     destroy_meter += 15
                 ast_list2[rem][0].y = 5000
@@ -830,7 +892,7 @@ def check_fuel():
 
 
 def check_game_over():
-    global  game_over
+    global game_over
     if player_lives == 0 and not resetting:
         write_text("GAME OVER", w/2, h/2, size=20)
         write_text("PRESS Y TO PLAY AGAIN", w/2, h/2+40, size=20)
@@ -849,7 +911,7 @@ def clear_all():
         player_x = w/2
         player_y = h-60
     expl_no = 0
-    destroy_meter = 100
+    destroy_meter = meter_limit
     ast_list2 = []
     paused = False
     if loaded:
@@ -860,13 +922,15 @@ def clear_all():
 
 
 def reset(reason="life lose"):
-    global game_start, player_lives, score, gui_no, other_gui, loaded, stage_x, stage_y, first_time
+    global game_start, player_lives, score, gui_no, other_gui, loaded, stage_x, stage_y, first_time, meter_limit
+    global gui_no, level_complete
     if reason == "life lose" and player_lives > 0:
         clear_all()
 
     if reason == "reset mode":
         clear_all()
         player_lives = 4
+        meter_limit = 100
         score = 0
         if loaded:
             stage_x = 0
@@ -881,7 +945,13 @@ def reset(reason="life lose"):
         loaded = False
         player_lives = 4
         score = 0
+        meter_limit = 100
         clear_all()
+
+    if reason == "level_complete":
+        game_start = False
+        gui_no = -1
+        level_complete = True
 
 
 def game_init():
@@ -918,6 +988,7 @@ def run_game():
             movements2()
             draw_destroy_meter()
             generate_random_enemies()
+            make_events()
         load_bullets()
         calc_angle()
 
@@ -987,6 +1058,9 @@ def gui_loader():
                 if not loaded:
                     load_campaign()
                     game_start = True
+        if gui_no == -1:
+            display_surface.fill(BLACK)
+            write_text("LEVEL COMPLET! Press N to go to menu", x=w/2-75, y=h/2, size=18)
         pygame.display.update()
         clock.tick(30)
         return
@@ -1014,7 +1088,7 @@ def gui_loader():
         y_ += 70
 
     pygame.display.update()
-    clock.tick(30)
+    clock.tick(60)
 
 
 while True:
