@@ -15,6 +15,7 @@ You need to have python3 and pygame, you can install pygame with pip install pyg
 Below are few screenshots
 
 ![image](https://user-images.githubusercontent.com/37832523/92974972-f7f40600-f4a4-11ea-91b1-990dfff2f047.png)
+![image](https://user-images.githubusercontent.com/37832523/92975253-7f417980-f4a5-11ea-9e49-4c66fe1ab55c.png)
 ![image](https://user-images.githubusercontent.com/37832523/92974981-fcb8ba00-f4a4-11ea-8f53-d523934d7754.png)
 ![image](https://user-images.githubusercontent.com/37832523/92974989-02160480-f4a5-11ea-8da8-cac55356b07b.png)
 ![image](https://user-images.githubusercontent.com/37832523/92974998-06dab880-f4a5-11ea-96ec-d729277b1ffe.png)
